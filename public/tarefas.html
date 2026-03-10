@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoRecycle - Gerenciamento de Tarefas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+
+        /* ================================================= */
+        /* ===== CÓDIGO CONSOLIDADO DO CARD DE TAREFA ===== */
+        /* ================================================= */
+
+        /* ----- O Card em si ----- */
+        .task-card {
+            background-color: white;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(9,30,66,.25);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-left: 4px solid transparent; /* Para indicar prioridade */
+        }
+
+        .task-card:hover {
+            background-color: #f4f5f7;
+            box-shadow: 0 4px 8px rgba(9,30,66,.15);
+        }
+
+        /* Cores de Prioridade (Borda) */
+        .priority-high { border-left-color: #ff5630; /* Vermelho */ }
+        .priority-medium { border-left-color: #ffab00; /* Amarelo */ }
+        .priority-low { border-left-color: #00875a; /* Verde */ }
+
+
+        /* ----- Conteúdo do Card (ID, Título, Meta) ----- */
+        .task-card-id {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 5px;
+        }
+
+        .task-title {
+            font-size: 16px; /* Aumenta o título */
+            font-weight: bold;
+            color: #172b4d;
+            margin-bottom: 12px; /* Mais espaço */
+        }
+
+        .task-meta {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap; 
+            gap: 15px; /* Espaço entre os itens */
+            font-size: 13px;
+            color: #5e6c84;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee; /* Linha divisória */
+            padding-bottom: 10px;
+        }
+
+        .task-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 5px; /* Espaço entre o ícone e o texto */
+        }
+
+        .task-meta-item i {
+            color: #5e6c84; /* Cor padrão para ícones (exceto o de prioridade) */
+        }
+
+        /* ----- Rodapé do Card (Layout Corrigido) ----- */
+        .task-footer {
+            display: flex;
+            justify-content: space-between; /* Lado esquerdo vs. Lado direito */
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+
+        /* NOVO container para data e avatar */
+        .task-footer-left {
+            display: flex;
+            align-items: center;
+            gap: 8px; /* Espaço entre data e avatar */
+        }
+
+        /* Data (com ícone) */
+        .task-date {
+            font-size: 12px;
+            color: #5e6c84;
+            display: flex;
+            align-items: center;
+            gap: 4px; /* Espaço entre ícone de calendário e texto */
+        }
+
+        /* Avatar (Responsável) */
+        .task-assignee {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #dfe1e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #172b4d;
+            overflow: hidden;
+            border: 1px solid #fff;
+            box-shadow: 0 0 0 1px #ccc;
+        }
+
+        .task-assignee img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* ----- Botões de Ação (Layout Corrigido) ----- */
+        .task-actions {
+            margin-top: 0; 
+            display: flex;
+            align-items: center;
+            gap: 8px; 
+        }
+
+        /* Estilo Base para os botões */
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn-action:hover {
+            opacity: 0.8;
+        }
+
+        /* Botão de Concluir (Verde) */
+        .btn-action-complete {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        /* Botão de Reverter (Amarelo) */
+        .btn-action-revert {
+            background-color: #ffab00; /* Amarelo */
+            color: #172b4d; /* Texto escuro para legibilidade */
+        }
+
+        .btn-action-revert:hover {
+            background-color: #ffc400; /* Amarelo mais claro */
+            opacity: 1; 
+            color: #172b4d;
+        }
+
+        /* Botão de Excluir (Vermelho) */
+        .btn-action-delete {
+            background-color: #e74c3c;
+            color: white;
+            padding: 6px 10px; /* Ajuste para ícone */
+        }
+        /* ===== RESET E CONFIGURAÇÕES GERAIS ===== */
+        /* ===== CSS GERAL E DE COMPONENTES (MANTIDO) ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* ===== NAVBAR SUPERIOR ===== */
+        .top-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: #2c3e50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+
+        /* --- NOVO CSS PARA O ÍCONE DA CONTA --- */
+        .navbar-right a {
+            color: #f5f5f5; /* Cor cinza claro/branco para o ícone */
+            text-decoration: none; /* Remove o sublinhado padrão dos links */
+            margin-right: 15px; /* Mantém o espaçamento igual ao dos outros ícones */
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        /* Garante que a cor permaneça cinza/branca nos estados :hover, :focus e :active */
+        .navbar-right a:hover,
+        .navbar-right a:focus,
+        .navbar-right a:active {
+            color: #ccc; /* Tom um pouco mais escuro no hover para dar feedback */
+        }
+
+        /* Garante que o ícone de usuário dentro do link adote a cor */
+        .navbar-right a .fas {
+            color: inherit; /* Herda a cor definida acima */
+        }
+
+        .logo-container {
+            width: 40px;
+            height: 40px;
+            background-color: #34495e;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #95a5a6;
+        }
+
+        .logo {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .navbar-center {
+            display: flex;
+            gap: 10px;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #ecf0f1;
+            font-size: 1.2em;
+        }
+
+        .menu-item {
+            width: auto;
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            color: #ecf0f1;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            transition: background-color 0.3s ease;
+            text-decoration: none; 
+            border-radius: 5px;
+        }
+
+        .menu-item:hover {
+            background-color: #34495e;
+        }
+
+        .menu-item.active {
+            background-color: #27ae60;
+            font-weight: bold;
+        }
+
+        .menu-icon {
+            font-size: 16px;
+        }
+
+        /* ===== CONTEÚDO PRINCIPAL - NOVO LAYOUT COM SIDEBAR DE FILTROS ===== */
+        .main-container {
+            display: flex;
+            margin-top: 60px; 
+            min-height: calc(100vh - 60px);
+        }
+
+        .filter-sidebar {
+            width: 300px;
+            background-color: #2c3e50; 
+            color: #ecf0f1;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+        
+        .filter-sidebar h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #34495e;
+            padding-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Estilos do Resumo de Tarefas */
+        .task-summary {
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #34495e;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 16px;
+        }
+
+        .summary-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-indicator.done { background-color: #2ecc71; } /* Verde */
+        .status-indicator.today { background-color: #3498db; } /* Azul */
+        .status-indicator.tomorrow { background-color: #9b59b6; } /* Roxo */
+        .status-indicator.to-do { background-color: #e74c3c; } /* Vermelho */
+        
+        .summary-count {
+            font-weight: bold;
+            color: #2ecc71; 
+        }
+        .summary-item:first-child .summary-count {
+            color: #ecf0f1; 
+        }
+
+        /* Estilos dos Filtros (Renomeado para Filtros Rápidos) */
+        .advanced-filters {
+            margin-bottom: 20px;
+        }
+
+        .advanced-filters h4 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #95a5a6;
+        }
+
+        .filter-group {
+            margin-bottom: 15px;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #ecf0f1;
+        }
+
+        .filter-group select,
+        .filter-group input[type="text"],
+        .filter-group input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: #34495e;
+            color: #ecf0f1;
+            font-size: 14px;
+            appearance: none; 
+        }
+        
+        .filter-group select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23ecf0f1' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px top 50%;
+            background-size: 10px auto;
+        }
+
+        .apply-filters-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #3498db; 
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .apply-filters-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .task-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        /* ===== HEADER DA TELA DE TAREFAS (BOTÃO ADICIONAR) ===== */
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .task-header h2 {
+            font-size: 24px;
+            color: #2c3e50;
+        }
+
+        .add-task-btn {
+            padding: 10px 20px;
+            background-color: #ff6600; 
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .add-task-btn:hover {
+            background-color: #e65c00;
+        }
+
+        /* =========================================== */
+        /* ===== NOVO FILTRO AVANÇADO DROPDOWN ===== */
+        /* =========================================== */
+        .advanced-filter-dropdown-container {
+            position: relative;
+            margin-bottom: 20px;
+            z-index: 100; /* Para o dropdown ficar sobre o kanban */
+        }
+
+        .advanced-filter-toggle-btn {
+            padding: 8px 15px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            color: #34495e;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .advanced-filter-toggle-btn:hover {
+            background-color: #f4f5f7;
+            border-color: #aaa;
+        }
+        
+        .advanced-filter-toggle-btn .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+
+        /* Estilo do botão quando o dropdown está ativo */
+        .advanced-filter-toggle-btn.active {
+            background-color: #e6e9ed;
+        }
+        
+        .advanced-filter-toggle-btn.active .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .advanced-filter-panel {
+            display: none; /* Oculto por padrão */
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 80vw; /* Ocupa 80% da largura da viewport */
+            max-width: 900px; /* Limite máximo */
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(9,30,66,.15);
+            padding: 20px;
+            margin-top: 5px;
+        }
+
+        .advanced-filter-panel.active {
+            display: block; /* Exibido quando ativo */
+        }
+
+        .advanced-filter-grid {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+
+        .filter-dropdown-column {
+            flex: 1; /* Cada coluna ocupa 1/3 do espaço */
+            min-width: 0; /* Prevenção de overflow do flex */
+        }
+        
+        .filter-dropdown-column h5 {
+            font-size: 16px;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        
+        .advanced-filter-panel .filter-group {
+            margin-bottom: 15px;
+        }
+        .advanced-filter-panel .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 13px;
+        }
+        
+        .advanced-filter-panel .filter-group input,
+        .advanced-filter-panel .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: #f9f9f9;
+            color: #333; 
+        }
+
+        .advanced-filter-panel .filter-group select option {
+            color: #333;
+            background-color: #fff; 
+        }
+        
+        .advanced-filter-panel .filter-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23333' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 10px auto;
+        }
+
+        .advanced-filter-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .advanced-filter-footer .btn-cancel,
+        .advanced-filter-footer .btn-submit {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 992px) {
+            .advanced-filter-panel {
+                width: 90vw;
+            }
+            .advanced-filter-grid {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+        /* =========================================== */
+        /* == FIM DO NOVO FILTRO AVANÇADO DROPDOWN === */
+        /* =========================================== */
+
+
+        /* ===== LAYOUT KANBAN (COLUNAS) ===== */
+        .kanban-container {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto; 
+            padding-bottom: 10px;
+        }
+
+        .task-column {
+            flex: 0 0 350px; 
+            background-color: #ebecf0; 
+            border-radius: 5px;
+            padding: 10px;
+            min-height: 500px;
+            max-height: calc(100vh - 150px); 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            margin-bottom: 10px;
+        }
+
+        .column-title-box {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .column-title-box.to-do {
+            background-color: #e74c3c; 
+        }
+        
+        .column-title-box.today {
+            background-color: #3498db; 
+        }
+
+        .column-title-box.tomorrow {
+            background-color: #9b59b6; /* Roxo */
+        }
+
+        .column-title-box.done {
+            background-color: #2ecc71; 
+        }
+
+        .column-actions {
+            color: #999;
+            cursor: pointer;
+            font-size: 1.1em;
+        }
+
+        .tasks-list {
+            flex-grow: 1;
+            overflow-y: auto; 
+            padding-right: 5px; 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Estilos de responsividade */
+        @media (max-width: 992px) {
+            .filter-sidebar {
+                width: 250px;
+            }
+            .task-column {
+                flex: 0 0 300px;
+            }
+            .navbar-center {
+                gap: 5px;
+            }
+            .menu-item {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            .menu-item {
+                font-size: 0; 
+                gap: 0;
+            }
+            .menu-item .menu-icon {
+                font-size: 18px; 
+                margin-right: 0;
+            }
+            .menu-item span {
+                display: none;
+            }
+        }
+        
+        @media (min-width: 993px) {
+            .menu-item span {
+                display: inline; 
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            .filter-sidebar {
+                width: 100%;
+                order: -1; 
+            }
+            .task-content {
+                padding: 10px;
+            }
+            .kanban-container {
+                flex-direction: row; 
+            }
+            .task-column {
+                flex: 0 0 90%; 
+                max-width: 400px;
+                max-height: none;
+            }
+            
+            .navbar-center {
+                flex-grow: 1; 
+                justify-content: center;
+            }
+            .navbar-right {
+                gap: 10px;
+            }
+            
+            .menu-item span {
+                display: none;
+            }
+        
+        }
+        
+        /* ===== MODAL (Estilos mantidos) ===== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            padding: 20px;
+            background-color: #34495e;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 8px 8px 0 0;
+        }
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .task-form {
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23333' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px top 50%;
+            background-size: 10px auto;
+        }
+        .form-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .btn-cancel,
+        .btn-submit {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .btn-cancel {
+            background-color: #95a5a6;
+            color: white;
+        }
+        .btn-submit {
+            background-color: #ff6600;
+            color: white;
+        }
+        
+        /* Estilos do Modal de Confirmação */
+        .confirm-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: none; /* Inicialmente oculto */
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+        .confirm-modal.active {
+            display: flex;
+        }
+        .confirm-modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .confirm-modal-content h3 {
+            color: #e74c3c;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        .confirm-modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .cancel-confirm-btn, .confirm-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .cancel-confirm-btn {
+            background-color: #95a5a6;
+            color: white;
+        }
+        .confirm-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+    <nav class="top-navbar">
+        <div class="navbar-left">
+            <div class="logo-container">
+                <img src="imagens/logo.png" alt="Logo" class="logo">
+            </div>
+            </div>
+        <div class="navbar-center">
+            <a href="dashboard.html" class="menu-item"><i class="fas fa-chart-line menu-icon"></i> <span>Dashboard</span></a>
+            <a href="tarefas.html" class="menu-item active"><i class="fas fa-tasks menu-icon"></i> <span>Tarefas</span></a>
+            <a href="calendario.html" class="menu-item"><i class="fas fa-calendar-alt menu-icon"></i> <span>Calendário</span></a>
+            <a href="mapa.html" class="menu-item"><i class="fas fa-map-marked-alt menu-icon"></i> <span>Mapa</span></a>
+        </div>
+        <div class="navbar-right">
+            <a href="configuracoes.html" title="Configurações">
+                <i class="fas fa-cog"></i>
+            </a>
+            <a href="conta.html" title="Minha Conta">
+                <i class="fas fa-user-circle"></i>
+            </a>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        
+        <aside class="filter-sidebar">
+            
+            <div class="task-summary">
+                <h3><i class="fas fa-list-ul"></i> Resumo das Tarefas</h3>
+                <div class="summary-item">
+                    <span class="summary-label">Total de Tarefas:</span>
+                    <span class="summary-count" id="total-tasks-count">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label"><span class="status-indicator done"></span> Concluído:</span>
+                    <span class="summary-count" id="done-tasks-count">0</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label"><span class="status-indicator today"></span> Tarefas de Hoje:</span>
+                    <span class="summary-count" id="today-tasks-count">0</span>
+                </div>
+                
+                <div class="summary-item">
+                    <span class="summary-label"><span class="status-indicator tomorrow"></span> Tarefas de Amanhã:</span>
+                    <span class="summary-count" id="tomorrow-tasks-count">0</span>
+                </div>
+                
+                <div class="summary-item">
+                    <span class="summary-label"><span class="status-indicator to-do"></span> A Fazer:</span>
+                    <span class="summary-count" id="to-do-tasks-count">0</span>
+                </div>
+            </div>
+
+            <div class="advanced-filters">
+                <h4><i class="fas fa-filter"></i> Filtros Rápidos</h4>
+                <form id="advancedFiltersForm">
+                    <div class="filter-group">
+                        <label for="filterPriority">Prioridade</label>
+                        <select id="filterPriority" name="priority">
+                            <option value="all">Todas</option>
+                            <option value="high">Alta</option>
+                            <option value="medium">Média</option>
+                            <option value="low">Baixa</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterResponsible">Responsável</label>
+                        <input type="text" id="filterResponsible" name="responsible" placeholder="Nome do Responsável">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filterDueDate">Data de Entrega</label>
+                        <input type="date" id="filterDueDate" name="dueDate">
+                    </div>
+                    <button type="submit" class="apply-filters-btn">Aplicar Filtros</button>
+                </form>
+            </div>
+        </aside>
+
+        <main class="task-content">
+            <section id="tarefas-section">
+                <div class="task-header">
+                    <h2>Gerenciamento de Tarefas</h2>
+                    <div class="actions-container">
+                        <button class="add-task-btn" id="addTaskBtn">
+                            <i class="fas fa-plus"></i> Adicionar Tarefa
+                        </button>
+                    </div>
+                </div>
+
+                <div class="advanced-filter-dropdown-container">
+                    <button class="advanced-filter-toggle-btn" id="advanced-filter-toggle">
+                        <i class="fas fa-filter"></i> Filtros Avançados
+                        <i class="fas fa-chevron-down toggle-icon"></i>
+                    </button>
+                    <div class="advanced-filter-panel" id="advanced-filter-panel">
+                        <div class="advanced-filter-grid">
+                            
+                            <div class="filter-dropdown-column">
+                                <h5>Status & Prazos</h5>
+                                <div class="filter-group">
+                                    <label for="adv-filter-status">Status</label>
+                                    <select id="adv-filter-status">
+                                        <option value="all">Todos</option>
+                                        <option value="to-do">A Fazer</option>
+                                        <option value="today">Hoje</option>
+                                        <option value="tomorrow">Amanhã</option>
+                                        <option value="done">Concluído</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="adv-filter-due-start">Entrega (Início)</label>
+                                    <input type="date" id="adv-filter-due-start">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="adv-filter-due-end">Entrega (Fim)</label>
+                                    <input type="date" id="adv-filter-due-end">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="adv-filter-created-start">Criação (Início)</label>
+                                    <input type="date" id="adv-filter-created-start">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="adv-filter-created-end">Criação (Fim)</label>
+                                    <input type="date" id="adv-filter-created-end">
+                                </div>
+                            </div>
+
+                            <div class="filter-dropdown-column">
+                                <h5>Detalhes da Coleta</h5>
+                                <div class="filter-group">
+                                    <label for="adv-filter-waste-type">Tipo de Lixo</label>
+                                    <select id="adv-filter-waste-type">
+                                        <option value="all">Todos</option>
+                                        <option value="computadores">Computadores</option>
+                                        <option value="celulares">Celulares</option>
+                                        <option value="televisores">Televisores</option>
+                                        <option value="eletrodomesticos">Eletrodomésticos</option>
+                                        <option value="baterias">Baterias</option>
+                                        <option value="cabos">Cabos e Fios</option>
+                                        <option value="outros">Outros</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="adv-filter-location">Local (Cidade)</label>
+                                    <select id="adv-filter-location">
+                                        <option value="all">Todas</option>
+                                        <option value="santo-andre">Santo André</option>
+                                        <option value="maua">Mauá</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="adv-filter-region">Região</label>
+                                    <input type="text" id="adv-filter-region" placeholder="Ex: Centro, Vila Pires">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="adv-filter-vehicle">Veículo</label>
+                                    <select id="adv-filter-vehicle">
+                                        <option value="all">Todos</option>
+                                        <option value="carro">Carro</option>
+                                        <option value="moto">Moto</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="adv-filter-cep">CEP (Início)</label>
+                                    <input type="text" id="adv-filter-cep" placeholder="Ex: 09000">
+                                </div>
+                            </div>
+
+                            <div class="filter-dropdown-column">
+                                <h5>Outros</h5>
+                                <div class="filter-group">
+                                    <label for="adv-filter-responsible">Responsável</label>
+                                    <input type="text" id="adv-filter-responsible" placeholder="Nome do responsável">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="adv-filter-priority">Prioridade</label>
+                                    <select id="adv-filter-priority">
+                                        <option value="all">Todas</option>
+                                        <option value="high">Alta</option>
+                                        <option value="medium">Média</option>
+                                        <option value="low">Baixa</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label for="adv-filter-title">Buscar no Título</label>
+                                    <input type="text" id="adv-filter-title" placeholder="Palavra-chave...">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="adv-filter-desc">Buscar na Descrição</label>
+                                    <input type="text" id="adv-filter-desc" placeholder="Palavra-chave...">
+                                </div>
+                                <div class="filter-group">
+                                    <label for="adv-filter-id">ID da Tarefa</label>
+                                    <input type="text" id="adv-filter-id" placeholder="Ex: TASK-001">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="advanced-filter-footer">
+                            <button class="btn-cancel" id="adv-filter-clear">Limpar Filtros</button>
+                            <button class="btn-submit" id="adv-filter-apply">Aplicar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="kanban-container">
+                    <div class="task-column" id="to-do-column">
+                        <div class="column-header">
+                            <span class="column-title-box to-do">A Fazer (<span id="to-do-count">0</span>)</span>
+                            <div class="column-actions">
+                                <i class="fas fa-redo-alt" title="Atualizar"></i>
+                            </div>
+                        </div>
+                        <div class="tasks-list" id="to-do-tasks">
+                            </div>
+                    </div>
+                    
+                    <div class="task-column" id="today-column">
+                        <div class="column-header">
+                            <span class="column-title-box today">Tarefas de Hoje (<span id="today-count">0</span>)</span>
+                            <div class="column-actions">
+                                <i class="fas fa-redo-alt" title="Atualizar"></i>
+                            </div>
+                        </div>
+                        <div class="tasks-list" id="today-tasks">
+                            </div>
+                    </div>
+                    
+                    <div class="task-column" id="tomorrow-column">
+                        <div class="column-header">
+                            <span class="column-title-box tomorrow">Amanhã (<span id="tomorrow-count">0</span>)</span>
+                            <div class="column-actions">
+                                <i class="fas fa-redo-alt" title="Atualizar"></i>
+                            </div>
+                        </div>
+                        <div class="tasks-list" id="tomorrow-tasks">
+                        </div>
+                    </div>
+                    
+                    <div class="task-column" id="done-column">
+                        <div class="column-header">
+                            <span class="column-title-box done">Concluído (<span id="done-count">0</span>)</span>
+                            <div class="column-actions">
+                                <i class="fas fa-redo-alt" title="Atualizar"></i>
+                            </div>
+                        </div>
+                        <div class="tasks-list" id="done-tasks">
+                            </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Nova Tarefa - Coleta de Lixo Eletrônico</h3>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            
+            <form class="task-form" id="taskForm">
+                <input type="hidden" id="taskId" name="taskId">
+                
+                <div class="form-group">
+                    <label for="taskName">Título da Tarefa</label>
+                    <input type="text" id="taskName" name="taskName" required>
+                </div>
+                <div class="form-group">
+                    <label for="taskDescription">Descrição (Opcional)</label>
+                    <textarea id="taskDescription" name="taskDescription"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="cep">CEP</label>
+                    <input type="text" id="cep" name="cep" required placeholder="00000-000" maxlength="9">
+                    <small id="cep-status" style="margin-top: 5px; display: block;"></small>
+                </div>
+                <div class="form-group">
+                    <label for="logradouro">Rua (Logradouro)</label>
+                    <input type="text" id="logradouro" name="logradouro" readonly style="background-color: #eee;">
+                </div>
+                <div class="form-group">
+                    <label for="numero">Número</label>
+                    <input type="text" id="numero" name="numero" placeholder="Ex: 123">
+                </div>
+                <div class="form-group">
+                    <label for="taskRegion">Bairro (Região)</label>
+                    <input type="text" id="taskRegion" name="taskRegion" readonly style="background-color: #eee;">
+                </div>
+                <div class="form-group">
+                    <label for="taskLocation">Cidade (Local)</label>
+                    <input type="text" id="taskLocation" name="taskLocation" readonly style="background-color: #eee;">
+                </div>
+                <div class="form-group">
+                    <label for="wasteType">Tipo de Lixo</label>
+                    <select id="wasteType" name="wasteType" required>
+                        <option value="computadores">Computadores</option>
+                        <option value="celulares">Celulares</option>
+                        <option value="televisores">Televisores</option>
+                        <option value="eletrodomesticos">Eletrodomésticos</option>
+                        <option value="baterias">Baterias</option>
+                        <option value="cabos">Cabos e Fios</option>
+                        <option value="outros">Outros</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="collectionDate">Data da Coleta</label>
+                    <input type="date" id="collectionDate" name="collectionDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="collectionTime">Hora da Coleta</label>
+                    <input type="time" id="collectionTime" name="collectionTime" required>
+                </div>
+                <div class="form-group">
+                    <label for="responsible">Responsável</label>
+                    <select id="responsible" name="responsible" required>
+                        <option value="">Selecione um motorista</option>
+                        </select>
+                </div>
+                <div class="form-group">
+                    <label for="vehicle">Veículo</label>
+                    <select id="vehicle" name="vehicle" required>
+                        <option value="carro">Carro</option>
+                        <option value="moto">Moto</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="priority">Prioridade</label>
+                    <select id="priority" name="priority">
+                        <option value="low">Baixa</option>
+                        <option value="medium" selected>Média</option>
+                        <option value="high">Alta</option>
+                    </select>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-cancel" id="cancelBtn">Cancelar</button>
+                    <button type="submit" class="btn-submit">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="confirm-modal" id="confirmDeleteModal">
+        <div class="confirm-modal-content">
+            <h3><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h3>
+            <p>Tem certeza que deseja excluir a tarefa "<span id="taskToDeleteName"></span>"?</p>
+            <p style="font-size: 14px; color: #95a5a6;">Esta ação não pode ser desfeita.</p>
+            <div class="confirm-modal-buttons">
+                <button class="cancel-confirm-btn" onclick="closeConfirmModal()">Cancelar</button>
+                <button class="confirm-btn" onclick="deleteTask()">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script src="tarefas.js"></script>
+    
+    </body>
+</html>
