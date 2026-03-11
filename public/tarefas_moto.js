@@ -1,6 +1,7 @@
 // Este script é executado DEPOIS de tarefas.js, então ele herda SUPABASE_URL, supabaseClient e outras funções
 
 // ATENÇÃO: A variável 'currentUserId' é usada como global (definida em tarefas.js).
+const PONTO_PARTIDA_PADRAO = "Av. Industrial, 493 - Jardim, Santo André - SP, 09080-510";
 
 // --- INICIALIZAÇÃO DA PÁGINA ---
 document.addEventListener('DOMContentLoaded', async function() {
@@ -95,8 +96,10 @@ function renderTaskList(tasksToRender) {
 
     noTasksMessage.style.display = 'none';
     
+    // Armazena as tarefas filtradas para a rota usar
+    window.filteredTasksForRoute = tasksToRender;
+
     tasksToRender.forEach(task => {
-        // Assume que as funções globais (getPriorityText, formatDate, etc.) estão em tarefas.js
         const priorityClass = window.getPriorityClass ? window.getPriorityClass(task.priority) : `priority-${task.priority}`;
         const priorityText = window.getPriorityText ? window.getPriorityText(task.priority) : task.priority;
         const formattedDate = window.formatDate(task.collectionDate);
@@ -110,7 +113,9 @@ function renderTaskList(tasksToRender) {
         else if (task.status === 'in-progress') { statusClass = 'status-in-progress'; statusText = 'Em Andamento'; } 
         else { statusClass = 'status-to-do'; statusText = 'Pendente'; }
 
-        // Determina qual botão de ação mostrar com base no status atual
+        // Endereço para o Google Maps
+        const enderecoCompleto = `${task.logradouro}, ${task.numero}, Santo André, SP`;
+
         let actionButtonHTML;
         if (task.status === 'to-do') {
             actionButtonHTML = `<button class="action-btn status-in-progress" onclick="markAsInProgress(${task.id})"><i class="fas fa-truck-loading"></i> Iniciar Coleta</button>`;
@@ -137,7 +142,10 @@ function renderTaskList(tasksToRender) {
             <div class="task-description">
                 <i class="fas fa-align-left"></i> Descrição: ${task.description || 'Sem descrição.'}
             </div>
-            <div class="task-actions">
+            <div class="task-actions" style="display:flex; flex-direction:column; gap:5px;">
+                <button class="action-btn" style="background-color: #3498db; color: white;" onclick="window.open('https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(PONTO_PARTIDA_PADRAO)}&destination=${encodeURIComponent(enderecoCompleto)}&travelmode=driving', '_blank')">
+                    <i class="fas fa-map-marked-alt"></i> Ver no GPS
+                </button>
                 ${actionButtonHTML}
             </div>
         `;
@@ -146,8 +154,42 @@ function renderTaskList(tasksToRender) {
 }
 
 // ==========================================================
-// ===== NOVAS FUNÇÕES DE EXPORTAÇÃO E ROTA [ADICIONADAS] =====
+// ===== NOVAS FUNÇÕES DE EXPORTAÇÃO E ROTA [CORRIGIDAS] =====
 // ==========================================================
+
+function calculateOptimalRoute() {
+    const pendentes = (window.filteredTasksForRoute || window.tasks).filter(t => t.status !== 'done');
+
+    if (pendentes.length === 0) {
+        alert("Não há tarefas pendentes para traçar rota.");
+        return;
+    }
+
+    const origem = encodeURIComponent(PONTO_PARTIDA_PADRAO);
+    const última = pendentes[pendentes.length - 1];
+    const destino = encodeURIComponent(`${última.logradouro}, ${última.numero}, Santo André, SP`);
+
+    let waypoints = "";
+    if (pendentes.length > 1) {
+        const paradas = pendentes.slice(0, -1).map(t => encodeURIComponent(`${t.logradouro}, ${t.numero}, Santo André, SP`));
+        waypoints = "&waypoints=" + paradas.join('|');
+    }
+
+    window.open(`https://www.google.com/maps/dir/?api=1&origin=${origem}&destination=${destino}${waypoints}&travelmode=driving`, '_blank');
+}
+
+/**
+ * Função para atualizar status (Iniciar/Concluir)
+ */
+async function markAsInProgress(id) {
+    const { error } = await supabaseClient.from('tasks').update({ status: 'in-progress' }).eq('id', id);
+    if (!error) await loadDriverTasks();
+}
+
+async function markAsDone(id) {
+    const { error } = await supabaseClient.from('tasks').update({ status: 'done' }).eq('id', id);
+    if (!error) await loadDriverTasks();
+}
 
 /**
  * Filtra as tarefas do dia e abre a janela de impressão para salvar como PDF.
@@ -196,13 +238,6 @@ function generateDailyTasksPDF() {
     
     printWindow.document.close();
     printWindow.print();
-}
-
-/**
- * NOTA: Esta função é um placeholder para alertar sobre a necessidade da API de Rotas.
- */
-function calculateOptimalRoute() {
-    alert("⚠️ Integração de Rotas Pendente!\n\nPara calcular a rota ideal (otimizar paradas e economizar gasolina), precisamos integrar uma API de mapeamento externa (como Google Maps Directions API ou OSRM).");
 }
 
 
@@ -267,9 +302,11 @@ window.applyFilters = function() {
 }
 
 
-// Expõe funções globais (essenciais para os botões de status e exportação)
+// Expõe funções globais
 window.renderTaskList = renderTaskList; 
 window.loadDriverTasks = loadDriverTasks;
 window.handleLogout = handleLogout;
 window.generateDailyTasksPDF = generateDailyTasksPDF;
 window.calculateOptimalRoute = calculateOptimalRoute;
+window.markAsInProgress = markAsInProgress;
+window.markAsDone = markAsDone;
