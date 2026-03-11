@@ -3,623 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Gestão de Lixo Eletrônico - Mapa</title>
+    <title>Mapa de Coletas - EcoRecycle</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <style>
-        /* ===== CSS GERAL E DE COMPONENTES (COPIADO DO ARQUIVO ORIGINAL) ===== */
-        /* ===== RESET E CONFIGURAÇÕES GERAIS ===== */
-/* ===== CSS GERAL E DE COMPONENTES (MANTIDO) ===== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; }
 
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-            overflow-x: hidden;
-        }
-
-        /* ===== NAVBAR SUPERIOR ===== */
+        /* Navbar */
         .top-navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 60px;
-            background-color: #2c3e50;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            z-index: 1000;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            background-color: #2c3e50; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 20px; z-index: 1000;
         }
-
-        .navbar-left {
-            display: flex;
-            align-items: center;
-        }
-
-        /* --- NOVO CSS PARA O ÍCONE DA CONTA --- */
-        .navbar-right a {
-            color: #f5f5f5; /* Cor cinza claro/branco para o ícone */
-            text-decoration: none; /* Remove o sublinhado padrão dos links */
-            margin-right: 15px; /* Mantém o espaçamento igual ao dos outros ícones */
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        /* Garante que a cor permaneça cinza/branca nos estados :hover, :focus e :active */
-        .navbar-right a:hover,
-        .navbar-right a:focus,
-        .navbar-right a:active {
-            color: #ccc; /* Tom um pouco mais escuro no hover para dar feedback */
-        }
-
-        /* Garante que o ícone de usuário dentro do link adote a cor */
-        .navbar-right a .fas {
-            color: inherit; /* Herda a cor definida acima */
-        }
-
-        .logo-container {
-            width: 40px;
-            height: 40px;
-            background-color: #34495e;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #95a5a6;
-        }
-
-        .logo {
-            width: 30px;
-            height: 30px;
-            object-fit: contain;
-        }
-
-        .navbar-center {
-            display: flex;
-            gap: 10px;
-        }
-
-        .navbar-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            color: #ecf0f1;
-            font-size: 1.2em;
-        }
-
+        .navbar-center { display: flex; gap: 15px; }
         .menu-item {
-            width: auto;
-            padding: 10px 15px;
-            background: none;
-            border: none;
-            color: #ecf0f1;
-            text-align: left;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 15px;
-            transition: background-color 0.3s ease;
-            text-decoration: none; 
-            border-radius: 5px;
+            padding: 8px 12px; color: #ecf0f1; text-decoration: none;
+            font-size: 14px; border-radius: 4px; transition: 0.3s;
+        }
+        .menu-item:hover { background-color: #34495e; }
+        .menu-item.active { background-color: #27ae60; }
+
+        /* Conteúdo */
+        .main-content { margin-top: 60px; padding: 20px; height: calc(100vh - 60px); }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        .menu-item:hover {
-            background-color: #34495e;
+        #map {
+            height: calc(100% - 80px); width: 100%;
+            border-radius: 12px; border: 2px solid #ddd;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .menu-item.active {
-            background-color: #27ae60;
-            font-weight: bold;
+        /* Estilo do Balão do Mapa */
+        .popup-content { font-size: 14px; line-height: 1.4; }
+        .btn-gps {
+            display: inline-block; margin-top: 8px; padding: 6px 12px;
+            background: #27ae60; color: white; text-decoration: none;
+            border-radius: 4px; font-weight: bold; text-align: center;
         }
-
-        .menu-icon {
-            font-size: 16px;
-        }
-
-
-/* ===== SIDEBAR LATERAL RETRÁTIL (REMOVIDA) ===== */
-/* Todos os estilos .sidebar, .sidebar-header, .close-sidebar, .sidebar-menu, .sidebar-overlay foram removidos */
-
-
-/* ===== ÁREA PRINCIPAL DE CONTEÚDO ===== */
-.main-content {
-    margin-top: 60px;
-    padding: 20px;
-    min-height: calc(100vh - 60px);
-    /* transition: margin-left 0.3s ease; Removido */
-}
-
-/* Seções de conteúdo */
-.content-section {
-    display: none;
-}
-
-.content-section.active {
-    display: block;
-}
-
-/* Cabeçalho das seções */
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 30px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid #bdc3c7;
-}
-
-.section-header h2 {
-    color: #2c3e50;
-    font-size: 24px;
-}
-
-/* Botão de adicionar tarefa */
-.add-task-btn {
-    padding: 10px 20px;
-    background-color: #27ae60;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
-}
-
-.add-task-btn:hover {
-    background-color: #229954;
-}
-
-/* ===== MODAL PARA CRIAR TAREFA (MANTIDO PARA EVITAR ERROS DE REFERÊNCIA NO JS) ===== */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
-
-.modal.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.modal-content {
-    background-color: white;
-    border-radius: 8px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-/* Cabeçalho do modal */
-.modal-header {
-    padding: 20px;
-    background-color: #34495e;
-    color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: 8px 8px 0 0;
-}
-
-.modal-header h3 {
-    font-size: 18px;
-}
-
-.close-modal {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 5px;
-    border-radius: 3px;
-    transition: background-color 0.3s ease;
-}
-
-.close-modal:hover {
-    background-color: rgba(255,255,255,0.2);
-}
-
-/* Formulário */
-.task-form {
-    padding: 20px;
-}
-
-.form-group {
-    margin-bottom: 20px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-    color: #2c3e50;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #bdc3c7;
-    border-radius: 5px;
-    font-size: 14px;
-    transition: border-color 0.3s ease;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: #3498db;
-}
-
-.form-group textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-/* Botões do formulário */
-.form-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 30px;
-}
-
-.btn-cancel,
-.btn-submit {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-}
-
-.btn-cancel {
-    background-color: #95a5a6;
-    color: white;
-}
-
-.btn-cancel:hover {
-    background-color: #7f8c8d;
-}
-
-.btn-submit {
-    background-color: #27ae60;
-    color: white;
-}
-
-.btn-submit:hover {
-    background-color: #229954;
-}
-
-/* ===== MODAL DE CONFIRMAÇÃO DE EXCLUSÃO (MANTIDO PARA EVITAR ERROS DE REFERÊNCIA NO JS) ===== */
-.confirm-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2100;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
-
-.confirm-modal.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.confirm-modal-content {
-    background-color: white;
-    border-radius: 8px;
-    padding: 30px;
-    max-width: 400px;
-    width: 90%;
-    text-align: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-.confirm-modal h3 {
-    color: #e74c3c;
-    margin-bottom: 15px;
-    font-size: 18px;
-}
-
-.confirm-modal p {
-    color: #7f8c8d;
-    margin-bottom: 25px;
-    line-height: 1.5;
-}
-
-.confirm-modal-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
-.confirm-btn,
-.cancel-confirm-btn {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-}
-
-.confirm-btn {
-    background-color: #e74c3c;
-    color: white;
-}
-
-.confirm-btn:hover {
-    background-color: #c0392b;
-}
-
-.cancel-confirm-btn {
-    background-color: #95a5a6;
-    color: white;
-}
-
-.cancel-confirm-btn:hover {
-    background-color: #7f8c8d;
-}
-
-/* ===== RESPONSIVIDADE (MANTIDO PARA CONSISTÊNCIA) ===== */
-@media (max-width: 768px) {
-    /* .sidebar { ... } removido */
-    
-    .section-header {
-        flex-direction: column;
-        gap: 15px;
-        align-items: stretch;
-    }
-}
-
-@media (max-width: 480px) {
-    .top-navbar {
-        padding: 0 10px;
-    }
-    
-    .main-content {
-        padding: 15px;
-    }
-}
     </style>
 </head>
 <body>
+
     <nav class="top-navbar">
-        <div class="navbar-left">
-            <div class="logo-container">
-                <img src="img/logo.png" alt="Logo" class="logo">
-            </div>
-            </div>
+        <div class="navbar-left"><strong style="color: white;">EcoRecycle</strong></div>
         <div class="navbar-center">
-            <a href="dashboard.html" class="menu-item"><i class="fas fa-chart-line menu-icon"></i> <span>Dashboard</span></a>
-            <a href="tarefas.html" class="menu-item"><i class="fas fa-tasks menu-icon"></i> <span>Tarefas</span></a>
-            <a href="calendario.html" class="menu-item"><i class="fas fa-calendar-alt menu-icon"></i> <span>Calendário</span></a>
-            <a href="mapa.html" class="menu-item active"><i class="fas fa-map-marked-alt menu-icon"></i> <span>Mapa</span></a>
+            <a href="tarefas.html" class="menu-item"><i class="fas fa-tasks"></i> Tarefas</a>
+            <a href="mapa.html" class="menu-item active"><i class="fas fa-map-marked-alt"></i> Mapa</a>
         </div>
-        <div class="navbar-right">
-            <a href="configuracoes.html" title="Configurações">
-                <i class="fas fa-cog"></i>
-            </a>
-            <a href="conta.html" title="Minha Conta">
-                <i class="fas fa-user-circle"></i>
-            </a>
-        </div>
+        <div class="navbar-right" style="color: white;"><i class="fas fa-user-circle"></i></div>
     </nav>
 
     <main class="main-content">
-        <section id="mapa-section" class="content-section active">
-            <div class="section-header">
-                <h2>Mapa de Rotas</h2>
-            </div>
-            <p>Conteúdo do Mapa será implementado aqui.</p>
-        </section>
+        <div class="section-header">
+            <h2>Rotas de Coleta - Hoje</h2>
+            <div id="map-status"><i class="fas fa-sync fa-spin"></i> Sincronizando com Supabase...</div>
+        </div>
+        
+        <div id="map"></div>
     </main>
 
-    <div class="modal" id="taskModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Nova Anotação - Lixo Eletrônico</h3>
-                <button class="close-modal" id="closeModal">&times;</button>
-            </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script src="configuracoes.js"></script> 
+    <script src="mapa.js" defer></script>
 
-            <form class="task-form" id="taskForm">
-                <p>O formulário de tarefas é gerenciado na tela de Tarefas. Esta tela é apenas para visualização.</p>
-                <div class="form-buttons">
-                    <button type="button" class="btn-cancel" id="cancelBtn">Cancelar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="confirm-modal" id="confirmDeleteModal">
-        <div class="confirm-modal-content">
-            <h3><i class="fas fa-exclamation-triangle"></i> Confirmar Exclusão</h3>
-            <p>Tem certeza que deseja excluir a tarefa "<span id="taskToDeleteName"></span>"?</p>
-            <p style="font-size: 14px; color: #95a5a6;">Esta ação não pode ser desfeita.</p>
-            <div class="confirm-modal-buttons">
-                <button class="cancel-confirm-btn" onclick="closeConfirmModal()">Cancelar</button>
-                <button class="confirm-btn" onclick="deleteTask()">Excluir</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // ===== VARIÁVEIS GLOBAIS (MANTIDAS PARA EVITAR ERROS DE REFERÊNCIA NO JS) =====
-        let tasks = []; // Array vazio, pois esta tela não gerencia tarefas diretamente
-        const regionsByLocation = {
-            "santo-andre": [
-                { value: "norte", label: "Região Norte" },
-                { value: "sul", label: "Região Sul" },
-                { value: "leste", label: "Região Leste" },
-                { value: "oeste", label: "Região Oeste" }
-            ],
-            "maua": [
-                { value: "vila-assis", label: "Vila Assis" },
-                { value: "jardim-zaira", label: "Jardim Zaira" },
-                { value: "parque-sao-vicente", label: "Parque São Vicente" },
-                { value: "vila-magini", label: "Vila Magini" },
-                { value: "jardim-maua", label: "Jardim Mauá" },
-                { value: "vila-bocaina", label: "Vila Bocaina" },
-                { value: "parque-das-americas", label: "Parque das Américas" },
-                { value: "jardim-itapark", label: "Jardim Itapark" }
-            ]
-        };
-
-        // Elementos do DOM
-        // let menuToggle, sidebar, sidebarOverlay, closeSidebar; //REMOVIDOS
-        let addTaskBtn, taskModal, closeModal, cancelBtn, taskForm;
-        let menuItems;
-
-        // ===== INICIALIZAÇÃO DA APLICAÇÃO =====
-        document.addEventListener("DOMContentLoaded", function() {
-            console.log("Iniciando aplicação - Mapa...");
-            
-            // Inicializa elementos do DOM
-            initializeElements();
-            
-            // Configura event listeners
-            setupEventListeners();
-            
-            console.log("Aplicação Mapa inicializada com sucesso!");
-        });
-
-        // ===== FUNÇÃO PARA INICIALIZAR ELEMENTOS DO DOM =====
-        function initializeElements() {
-            // Elementos da navbar e sidebar (REMOVIDOS)
-            // menuToggle = document.getElementById("menuToggle");
-            // sidebar = document.getElementById("sidebar");
-            // sidebarOverlay = document.getElementById("sidebarOverlay");
-            // closeSidebar = document.getElementById("closeSidebar");
-            
-            // Elementos do modal de tarefas (mantidos para evitar erros de referência)
-            addTaskBtn = document.getElementById("addTaskBtn");
-            taskModal = document.getElementById("taskModal");
-            closeModal = document.getElementById("closeModal");
-            cancelBtn = document.getElementById("cancelBtn");
-            taskForm = document.getElementById("taskForm");
-            
-            // Botões e seções (ajustado para links, mas mantendo a lógica de DOM)
-            menuItems = document.querySelectorAll(".menu-item");
-        }
-
-        // ===== CONFIGURAÇÃO DOS EVENT LISTENERS =====
-        function setupEventListeners() {
-            // Event listeners para a sidebar (REMOVIDOS)
-            // if (menuToggle) menuToggle.addEventListener("click", openSidebar);
-            // if (closeSidebar) closeSidebar.addEventListener("click", closeSidebarFunction);
-            // if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebarFunction);
-            
-            // Event listeners para o modal (mantidos para evitar erros de referência)
-            if (addTaskBtn) addTaskBtn.addEventListener("click", openTaskModal);
-            if (closeModal) closeModal.addEventListener("click", closeTaskModal);
-            if (cancelBtn) cancelBtn.addEventListener("click", closeTaskModal);
-            
-            // Event listener para o formulário de tarefas (apenas para evitar erro de submit)
-            if (taskForm) taskForm.addEventListener("submit", (e) => { e.preventDefault(); console.log("Formulário de tarefa submetido (ação desabilitada nesta tela)."); closeTaskModal(); });
-            
-            // Fechar modal clicando fora dele
-            if (taskModal) {
-                taskModal.addEventListener("click", function(e) {
-                    if (e.target === taskModal) {
-                        closeTaskModal();
-                    }
-                });
-            }
-
-            // Event listener para o modal de confirmação de exclusão
-            const confirmDeleteModal = document.getElementById("confirmDeleteModal");
-            if (confirmDeleteModal) {
-                confirmDeleteModal.addEventListener("click", function(e) {
-                    if (e.target === confirmDeleteModal) {
-                        closeConfirmModal();
-                    }
-                });
-            }
-        }
-
-        // ===== FUNÇÕES DA SIDEBAR (REMOVIDAS) =====
-        // function openSidebar() { ... }
-        // function closeSidebarFunction() { ... }
-
-        // ===== FUNÇÕES DO MODAL (SIMPLIFICADAS) =====
-        function openTaskModal(isEditing = false) {
-            if (taskModal) taskModal.classList.add("active");
-            console.log("Modal de tarefa aberto (somente visualização)");
-        }
-            
-        function closeTaskModal() {
-            if (taskModal) taskModal.classList.remove("active");
-            console.log("Modal de tarefa fechado");
-        }
-
-        // ===== FUNÇÕES DE GERENCIAMENTO DE TAREFAS (REMOVIDAS OU SIMPLIFICADAS) =====
-        function updateRegionOptions() { /* Não faz nada */ }
-        function handleTaskSubmit(e) { /* Não faz nada */ }
-        function renderTasks() { /* Não faz nada */ }
-        function createTaskCard(task) { /* Não faz nada */ }
-        function getStatusLabel(status) { return status; }
-        function getWasteTypeLabel(wasteType) { return wasteType; }
-        function formatDate(dateString) { return dateString; }
-        function getLocationLabel(location) { return location; }
-        function getRegionLabel(region) { return region; }
-        function calculateTimeRemaining(dateString, timeString) { return { text: "N/A", class: "normal" }; }
-        function saveTasksToStorage() { /* Não faz nada */ }
-        function loadTasksFromStorage() { /* Não faz nada */ }
-        function editTask(taskId) { console.error("Edição de tarefa desabilitada nesta tela."); }
-
-        let taskIdToDelete = null;
-
-        function confirmDeleteTask(taskId) {
-            console.error("Exclusão de tarefa desabilitada nesta tela.");
-        }
-
-        function closeConfirmModal() {
-            const confirmModal = document.getElementById("confirmDeleteModal");
-            if (confirmModal) confirmModal.classList.remove("active");
-            taskIdToDelete = null;
-            console.log("Modal de confirmação fechado.");
-        }
-
-        function deleteTask() {
-            console.error("Exclusão de tarefa desabilitada nesta tela.");
-        }
-        
-        // Adicionando as funções ao escopo global para serem acessíveis pelos onclicks do HTML
-        window.editTask = editTask;
-        window.confirmDeleteTask = confirmDeleteTask;
-        window.closeConfirmModal = closeConfirmModal;
-        window.deleteTask = deleteTask;
-    </script>
 </body>
 </html>
