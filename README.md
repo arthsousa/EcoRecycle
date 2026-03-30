@@ -1,6 +1,3 @@
-Perfeito, Arthur! Vamos ajustar o texto para refletir exatamente o que vimos na sua foto da estrutura de pastas (onde você não tem um style.css separado e tudo está dentro da public).
-
-Aqui está o seu README.md oficial e atualizado:
 
 ♻️ EcoRecycle - Sistema de Logística de Coleta
 O EcoRecycle é uma plataforma para o gerenciamento inteligente de coletas de resíduos eletrônicos. O sistema integra um dashboard administrativo, mapas de rotas e um painel Kanban para acompanhamento em tempo real das operações de campo.
