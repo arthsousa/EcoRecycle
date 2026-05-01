@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestão de Lixo Eletrônico - Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <style>
+        /* ===== CSS GERAL E DE COMPONENTES (MANTIDO) ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* ===== NAVBAR SUPERIOR ===== */
+        .top-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: #2c3e50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+
+        /* --- NOVO CSS PARA O ÍCONE DA CONTA --- */
+        .navbar-right a {
+            color: #f5f5f5; /* Cor cinza claro/branco para o ícone */
+            text-decoration: none; /* Remove o sublinhado padrão dos links */
+            margin-right: 15px; /* Mantém o espaçamento igual ao dos outros ícones */
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        /* Garante que a cor permaneça cinza/branca nos estados :hover, :focus e :active */
+        .navbar-right a:hover,
+        .navbar-right a:focus,
+        .navbar-right a:active {
+            color: #ccc; /* Tom um pouco mais escuro no hover para dar feedback */
+        }
+
+        /* Garante que o ícone de usuário dentro do link adote a cor */
+        .navbar-right a .fas {
+            color: inherit; /* Herda a cor definida acima */
+        }
+
+        .logo-container {
+            width: 40px;
+            height: 40px;
+            background-color: #34495e;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #95a5a6;
+        }
+
+        .logo {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .navbar-center {
+            display: flex;
+            gap: 10px;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #ecf0f1;
+            font-size: 1.2em;
+        }
+
+        .menu-item {
+            width: auto;
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            color: #ecf0f1;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            transition: background-color 0.3s ease;
+            text-decoration: none; 
+            border-radius: 5px;
+        }
+
+        .menu-item:hover {
+            background-color: #34495e;
+        }
+
+        .menu-item.active {
+            background-color: #27ae60;
+            font-weight: bold;
+        }
+
+        .menu-icon {
+            font-size: 16px;
+        }
+
+        /* ===== ÁREA PRINCIPAL DE CONTEÚDO ===== */
+        .main-content {
+            margin-top: 60px;
+            padding: 20px;
+            min-height: calc(100vh - 60px);
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #bdc3c7;
+        }
+
+        .section-header h2 {
+            color: #2c3e50;
+            font-size: 24px;
+        }
+
+        .add-task-btn {
+            padding: 10px 20px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .add-task-btn:hover {
+            background-color: #229954;
+        }
+
+        /* ===== ESTILOS DO DASHBOARD (MANTIDO) ===== */
+        .dashboard-filters {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            background-color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .refresh-btn {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .kpi-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .kpi-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.2s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .kpi-icon {
+            font-size: 32px;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #ecf0f1;
+            border-radius: 50%;
+        }
+
+        .kpi-content {
+            flex: 1;
+        }
+
+        .kpi-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .kpi-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .timeline-section, .status-section {
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chart-container.full-width {
+            width: 100%;
+        }
+
+        .chart-title {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chart-wrapper canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .info-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .info-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .info-title {
+            color: #2c3e50;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+
+        .upcoming-tasks {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .area-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .area-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .area-name {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .area-count {
+            background-color: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        /* Seção da Tabela */
+        .table-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .table-title {
+            color: #2c3e50;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .details-table th {
+            background-color: #34495e;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .details-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .details-table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-badge.pendente {
+            background-color: #fadbd8;
+            color: #c0392b;
+        }
+
+        .status-badge.em-andamento {
+            background-color: #fdeaa7;
+            color: #d68910;
+        }
+
+        .status-badge.concluida {
+            background-color: #d5f4e6;
+            color: #196f3d;
+        }
+
+        .timer-badge {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .timer-badge.urgent {
+            background-color: #fadbd8;
+            color: #c0392b;
+        }
+
+        .timer-badge.warning {
+            background-color: #fdeaa7;
+            color: #d68910;
+        }
+
+        .timer-badge.normal {
+            background-color: #d5f4e6;
+            color: #196f3d;
+        }
+        
+        /* Estilos para Próximas Coletas (copiado do seu CSS) */
+        .upcoming-task-item {
+            margin-bottom: 12px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #3498db;
+        }
+
+        .upcoming-task-date {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 4px;
+        }
+
+        .upcoming-task-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+
+        .upcoming-task-location {
+            font-size: 12px;
+            color: #34495e;
+            margin-bottom: 6px;
+        }
+
+        .upcoming-task-timer {
+            font-size: 11px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .upcoming-task-timer.urgent {
+            background-color: #fadbd8;
+            color: #c0392b;
+        }
+
+        .upcoming-task-timer.warning {
+            background-color: #fdeaa7;
+            color: #d68910;
+        }
+
+        .upcoming-task-timer.normal {
+            background-color: #d5f4e6;
+            color: #196f3d;
+        }
+
+        /* ===== RESPONSIVIDADE (MANTIDO) ===== */
+        @media (max-width: 768px) {
+            .navbar-center {
+                gap: 5px;
+            }
+            .section-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+            .kpi-section {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+            .charts-section {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .info-section {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .dashboard-filters {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .chart-wrapper {
+                height: 250px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .top-navbar {
+                padding: 0 10px;
+            }
+            .main-content {
+                padding: 15px;
+            }
+            .navbar-center {
+                display: none; 
+            }
+            .kpi-section {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .kpi-card {
+                padding: 15px;
+            }
+            .kpi-value {
+                font-size: 20px;
+            }
+            .chart-wrapper {
+                height: 200px;
+            }
+            .details-table {
+                font-size: 12px;
+            }
+            .details-table th,
+            .details-table td {
+                padding: 8px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-navbar">
+        <div class="navbar-left">
+            <div class="logo-container">
+                <img src="imagens/logo.png" alt="Logo" class="logo">
+            </div>
+            </div>
+        <div class="navbar-center">
+            <a href="dashboard.html" class="menu-item active"><i class="fas fa-chart-line menu-icon"></i> <span>Dashboard</span></a>
+            <a href="tarefas.html" class="menu-item"><i class="fas fa-tasks menu-icon"></i> <span>Tarefas</span></a>
+            <a href="calendario.html" class="menu-item"><i class="fas fa-calendar-alt menu-icon"></i> <span>Calendário</span></a>
+            <a href="mapa.html" class="menu-item"><i class="fas fa-map-marked-alt menu-icon"></i> <span>Mapa</span></a>
+        </div>
+        <div class="navbar-right">
+            <a href="configuracoes.html" title="Configurações">
+                <i class="fas fa-cog"></i>
+            </a>
+            <a href="conta.html" title="Minha Conta">
+                <i class="fas fa-user-circle"></i>
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <section id="dashboard-section" class="content-section active">
+            <div class="section-header">
+                <h2>Dashboard de Relatórios</h2>
+                <div class="dashboard-filters">
+                    <select id="periodFilter" class="filter-select">
+                        <option value="all">Todo o Período</option>
+                        <option value="7">Últimos 7 dias</option>
+                        <option value="30">Últimos 30 dias</option>
+                        <option value="90">Últimos 90 dias</option>
+                        <option value="365">Último Ano</option>
+                    </select>
+                    <button class="refresh-btn" id="refreshDashboard"><i class="fas fa-sync-alt"></i> Atualizar</button>
+                </div>
+            </div>
+
+            <div class="kpi-section">
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="color: #3498db;"><i class="fas fa-boxes"></i></div>
+                    <div class="kpi-content">
+                        <div class="kpi-value" id="totalColetas">0</div>
+                        <div class="kpi-label">Total de Coletas</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="color: #27ae60;"><i class="fas fa-weight-hanging"></i></div>
+                    <div class="kpi-content">
+                        <div class="kpi-value" id="pesoTotal">0 kg</div>
+                        <div class="kpi-label">Peso Total (Exemplo)</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="color: #e74c3c;"><i class="fas fa-hourglass-half"></i></div>
+                    <div class="kpi-content">
+                        <div class="kpi-value" id="coletasPendentes">0</div>
+                        <div class="kpi-label">Coletas Pendentes</div>
+                    </div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-icon" style="color: #f39c12;"><i class="fas fa-check-circle"></i></div>
+                    <div class="kpi-content">
+                        <div class="kpi-value" id="coletasConcluidas">0</div>
+                        <div class="kpi-label">Coletas Concluídas</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-section">
+                <div class="chart-container">
+                    <h3 class="chart-title">Coletas por Localização</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="locationChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3 class="chart-title">Distribuição por Tipo de Lixo</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="wasteTypeChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-section">
+                <div class="chart-container full-width">
+                    <h3 class="chart-title">Coletas ao Longo do Tempo</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="timelineChart" width="800" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-section">
+                <div class="chart-container full-width">
+                    <h3 class="chart-title">Status das Coletas por Localização</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="statusChart" width="800" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-card">
+                    <h3 class="info-title">Próximas Coletas Agendadas</h3>
+                    <div class="upcoming-tasks" id="upcomingTasks">
+                        <p style="color: #7f8c8d; font-style: italic;">Carregando...</p>
+                    </div>
+                </div>
+                <div class="info-card">
+                    <h3 class="info-title">Resumo por Área</h3>
+                    <div class="area-summary" id="areaSummary">
+                        </div>
+                </div>
+            </div>
+
+            <div class="table-section">
+                <h3 class="table-title">Detalhes das Coletas</h3>
+                <div class="table-wrapper">
+                    <table class="details-table">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Nome</th>
+                                <th>Local</th>
+                                <th>Região</th>
+                                <th>Tipo</th>
+                                <th>Veículo</th>
+                                <th>CEP</th>
+                                <th>Status</th>
+                                <th>Responsável</th>
+                                <th>Tempo Restante</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailsTableBody">
+                            <tr><td colspan="10" style="text-align: center; color: #7f8c8d; font-style: italic;">Carregando dados...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <script src="tarefas.js"></script> 
+    
+    <script>
+        // Variáveis globais para os gráficos
+        let locationChart, wasteTypeChart, timelineChart, statusChart;
+        let periodFilter;
+
+        // Função de Inicialização de Elementos (Chamada pelo tarefas.js)
+        window.initializeElements_Dashboard = function() {
+            periodFilter = document.getElementById("periodFilter");
+        }
+
+        // Função de Configuração de Eventos (Chamada pelo tarefas.js)
+        window.setupEventListeners_Dashboard = function() {
+            if (periodFilter) periodFilter.addEventListener("change", updateDashboard);
+            if (document.getElementById("refreshDashboard")) {
+                document.getElementById("refreshDashboard").addEventListener("click", updateDashboard);
+            }
+        }
+
+        // Função Principal de Inicialização dos Gráficos (Chamada pelo tarefas.js)
+        window.initializeDashboard = function() {
+            // Inicializa os gráficos vazios
+            const ctxLocation = document.getElementById('locationChart');
+            if(ctxLocation) {
+                locationChart = new Chart(ctxLocation, {
+                    type: 'doughnut',
+                    data: { labels: [], datasets: [] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const ctxWaste = document.getElementById('wasteTypeChart');
+            if(ctxWaste) {
+                wasteTypeChart = new Chart(ctxWaste, {
+                    type: 'pie',
+                    data: { labels: [], datasets: [] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const ctxTimeline = document.getElementById('timelineChart');
+            if(ctxTimeline) {
+                timelineChart = new Chart(ctxTimeline, {
+                    type: 'line',
+                    data: { labels: [], datasets: [] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            const ctxStatus = document.getElementById('statusChart');
+            if(ctxStatus) {
+                statusChart = new Chart(ctxStatus, {
+                    type: 'bar',
+                    data: { labels: [], datasets: [] },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
+                });
+            }
+
+            // Atualiza o dashboard com os dados reais APÓS A CARGA DO SUPABASE
+            updateDashboard();
+        }
+
+        // Esta é a função principal que redesenha tudo
+        async function updateDashboard() {
+            
+            if (!window.tasks) {
+                console.error("Dados de tarefas não encontrados!");
+                return;
+            }
+            
+            const filteredTasks = filterTasksByPeriod(window.tasks, periodFilter.value);
+            
+            updateKPIs(filteredTasks);
+            updateLocationChart(filteredTasks);
+            updateWasteTypeChart(filteredTasks);
+            updateTimelineChart(filteredTasks);
+            updateStatusChart(filteredTasks);
+            updateUpcomingTasks(filteredTasks);
+            updateAreaSummary(filteredTasks);
+            updateDetailsTable(filteredTasks);
+
+            console.log("Dashboard atualizado com base em", periodFilter.value);
+        }
+
+        function filterTasksByPeriod(tasksToFilter, period) {
+            if (period === "all") return tasksToFilter;
+
+            const days = parseInt(period);
+            const cutoffDate = new Date();
+            cutoffDate.setHours(0, 0, 0, 0); // Zera a hora
+            cutoffDate.setDate(cutoffDate.getDate() - days);
+
+            return tasksToFilter.filter(task => {
+                if (!task.collectionDate) return false;
+                // Trata a data como local, ignorando fuso
+                const [year, month, day] = task.collectionDate.split('-');
+                const taskDate = new Date(year, month - 1, day); 
+                return taskDate >= cutoffDate;
+            });
+        }
+
+        function updateKPIs(tasks) {
+            const totalColetas = tasks.length;
+            const pesoTotal = 0; 
+            const coletasPendentes = tasks.filter(t => t.status === 'to-do' || t.status === 'in-progress').length;
+            const coletasConcluidas = tasks.filter(t => t.status === 'done').length;
+
+            document.getElementById('totalColetas').textContent = totalColetas;
+            document.getElementById('pesoTotal').textContent = `${pesoTotal.toFixed(1)} kg`; 
+            document.getElementById('coletasPendentes').textContent = coletasPendentes;
+            document.getElementById('coletasConcluidas').textContent = coletasConcluidas;
+        }
+
+        function updateLocationChart(tasks) {
+            const locationCounts = tasks.reduce((acc, task) => {
+                const locationKey = task.location || 'N/D'; 
+                acc[locationKey] = (acc[locationKey] || 0) + 1;
+                return acc;
+            }, {});
+
+            const labels = Object.keys(locationCounts);
+            const data = Object.values(locationCounts);
+            const colors = ['#3498db', '#27ae60', '#e74c3c', '#f39c12'];
+
+            locationChart.data.labels = labels;
+            locationChart.data.datasets = [{
+                data: data,
+                backgroundColor: colors.slice(0, data.length),
+            }];
+            locationChart.update();
+        }
+
+        function updateWasteTypeChart(tasks) {
+            const wasteTypeCounts = tasks.reduce((acc, task) => {
+                acc[task.wasteType] = (acc[task.wasteType] || 0) + 1;
+                return acc;
+            }, {});
+            
+            const labels = Object.keys(wasteTypeCounts).map(key => window.wasteTypeLabels[key] || key);
+            const data = Object.values(wasteTypeCounts);
+            const colors = ['#34495e', '#95a5a6', '#2c3e50', '#bdc3c7', '#7f8c8d', '#ecf0f1', '#1abc9c'];
+
+            wasteTypeChart.data.labels = labels;
+            wasteTypeChart.data.datasets = [{
+                data: data,
+                backgroundColor: colors.slice(0, data.length),
+            }];
+            wasteTypeChart.update();
+        }
+
+        function updateTimelineChart(tasks) {
+            const dateCounts = tasks.reduce((acc, task) => {
+                if (!task.collectionDate) return acc;
+                const date = task.collectionDate;
+                acc[date] = (acc[date] || 0) + 1;
+                return acc;
+            }, {});
+
+            const sortedDates = Object.keys(dateCounts).sort((a, b) => new Date(a) - new Date(b));
+            const labels = sortedDates.map(date => window.formatDate(date)); 
+            const data = sortedDates.map(date => dateCounts[date]);
+
+            timelineChart.data.labels = labels;
+            timelineChart.data.datasets = [{
+                label: 'Coletas por Dia',
+                data: data,
+                borderColor: '#3498db',
+                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                fill: true,
+                tension: 0.1
+            }];
+            timelineChart.update();
+        }
+
+        function updateStatusChart(tasks) {
+            const statusByLocation = tasks.reduce((acc, task) => {
+                const locationKey = task.location || 'N/D';
+                if (!acc[locationKey]) acc[locationKey] = { 'to-do': 0, 'in-progress': 0, 'done': 0 };
+                
+                acc[locationKey][task.status] = (acc[locationKey][task.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const locations = Object.keys(statusByLocation);
+            const labels = locations; 
+
+            const pendenteData = locations.map(loc => statusByLocation[loc]['to-do'] || 0);
+            const emAndamentoData = locations.map(loc => statusByLocation[loc]['in-progress'] || 0);
+            const concluidoData = locations.map(loc => statusByLocation[loc]['done'] || 0);
+
+            statusChart.data.labels = labels;
+            statusChart.data.datasets = [
+                {
+                    label: 'Pendente',
+                    data: pendenteData,
+                    backgroundColor: '#e74c3c',
+                },
+                {
+                    label: 'Em Andamento',
+                    data: emAndamentoData,
+                    backgroundColor: '#f39c12',
+                },
+                {
+                    label: 'Concluído',
+                    data: concluidoData,
+                    backgroundColor: '#27ae60',
+                }
+            ];
+            statusChart.update();
+        }
+
+        function updateUpcomingTasks(tasks) {
+            const upcomingTasksDiv = document.getElementById('upcomingTasks');
+            if (!upcomingTasksDiv) return;
+
+            const now = new Date();
+            const upcoming = tasks.filter(t => new Date(`${t.collectionDate}T${t.collectionTime || '00:00:00'}`) > now)
+                                  .sort((a, b) => new Date(`${a.collectionDate}T${a.collectionTime || '00:00:00'}`) - new Date(`${b.collectionDate}T${b.collectionTime || '00:00:00'}`));
+
+            upcomingTasksDiv.innerHTML = '';
+
+            if (upcoming.length === 0) {
+                upcomingTasksDiv.innerHTML = '<p style="color: #7f8c8d; font-style: italic;">Nenhuma coleta agendada para o futuro.</p>';
+                return;
+            }
+
+            upcoming.slice(0, 5).forEach(task => { 
+                // Assumindo que window.calculateTimeRemaining está definido em tarefas.js
+                const timeRemaining = window.calculateTimeRemaining(task.collectionDate, task.collectionTime);
+                const locationStr = task.location || 'N/D';
+                const regionStr = task.region || 'N/D';
+                
+                const item = document.createElement('div');
+                item.className = 'upcoming-task-item';
+                item.innerHTML = `
+                    <div class="upcoming-task-name">${task.name}</div>
+                    <div class="upcoming-task-date">${window.formatDate(task.collectionDate)} às ${task.collectionTime || 'N/D'}</div>
+                    <div class="upcoming-task-location">${locationStr} - ${regionStr}</div>
+                    <div class="upcoming-task-timer ${timeRemaining.class}">${timeRemaining.text}</div>
+                `;
+                upcomingTasksDiv.appendChild(item);
+            });
+        }
+
+        function updateAreaSummary(tasks) {
+            const areaSummaryDiv = document.getElementById('areaSummary');
+            if (!areaSummaryDiv) return;
+
+            const locationCounts = tasks.reduce((acc, task) => {
+                const locationKey = task.location || 'N/D';
+                acc[locationKey] = (acc[locationKey] || 0) + 1;
+                return acc;
+            }, {});
+
+            const statusCounts = tasks.reduce((acc, task) => {
+                acc[task.status] = (acc[task.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            areaSummaryDiv.innerHTML = '';
+            
+            for (const loc in locationCounts) {
+                const count = locationCounts[loc];
+                const item = document.createElement('div');
+                item.className = 'area-item';
+                item.innerHTML = `
+                    <span class="area-name">${loc}</span>
+                    <span class="area-count">${count}</span>
+                `;
+                areaSummaryDiv.appendChild(item);
+            }
+
+            const pendenteCount = (statusCounts['to-do'] || 0) + (statusCounts['in-progress'] || 0);
+            const concluidoCount = statusCounts['done'] || 0;
+
+            let itemPendente = document.createElement('div');
+            itemPendente.className = 'area-item';
+            itemPendente.innerHTML = `
+                <span class="area-name">Pendente</span>
+                <span class="area-count" style="background-color: #e74c3c;">${pendenteCount}</span>
+            `;
+            areaSummaryDiv.appendChild(itemPendente);
+
+            let itemConcluido = document.createElement('div');
+            itemConcluido.className = 'area-item';
+            itemConcluido.innerHTML = `
+                <span class="area-name">Concluído</span>
+                <span class="area-count" style="background-color: #27ae60;">${concluidoCount}</span>
+            `;
+            areaSummaryDiv.appendChild(itemConcluido);
+        }
+
+        function updateDetailsTable(tasks) {
+            const tableBody = document.getElementById('detailsTableBody');
+            if (!tableBody) return;
+
+            tableBody.innerHTML = '';
+
+            if (tasks.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #7f8c8d; font-style: italic;">Nenhuma coleta encontrada para o período selecionado.</td></tr>';
+                return;
+            }
+            
+            const sortedTasks = tasks.sort((a, b) => new Date(b.collectionDate) - new Date(a.collectionDate));
+
+            sortedTasks.forEach(task => {
+                // Assumindo que window.calculateTimeRemaining está definido em tarefas.js
+                const timeRemaining = window.calculateTimeRemaining(task.collectionDate, task.collectionTime);
+                const locationStr = task.location || 'N/D';
+                const regionStr = task.region || 'N/D';
+                const wasteStr = window.wasteTypeLabels[task.wasteType] || task.wasteType;
+                
+                let statusClass, statusText;
+                if (task.status === 'done') { statusClass = 'concluida'; statusText = 'Concluído'; } 
+                else if (task.status === 'in-progress') { statusClass = 'em-andamento'; statusText = 'Em Andamento'; } 
+                else { statusClass = 'pendente'; statusText = 'Pendente'; }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${window.formatDate(task.collectionDate)}</td>
+                    <td>${task.name}</td>
+                    <td>${locationStr}</td>
+                    <td>${regionStr}</td>
+                    <td>${wasteStr}</td>
+                    <td>${task.vehicle === 'moto' ? 'Moto' : 'Carro'}</td>
+                    <td>${task.cep || 'N/A'}</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td>${task.responsible || 'N/A'}</td>
+                    <td><span class="timer-badge ${timeRemaining.class}">${timeRemaining.text}</span></td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+    
+    </body>
+</html>

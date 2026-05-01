@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoRecycle - Calendário de Coletas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/main.min.css' rel='stylesheet' />
+    <style>
+        /* ================================================================= */
+        /* ============= NOVO CSS SOFISTICADO - MODO CLARO ============= */
+        /* ================================================================= */
+
+        /* Variáveis CSS para fácil customização */
+        :root {
+            --color-primary: #2ecc71; /* Verde Esmeralda */
+            --color-secondary: #34495e; /* Azul Marinho */
+            --color-background: #f4f7f6; /* Fundo muito claro */
+            --color-card: #ffffff; /* Fundo do cartão branco */
+            --color-text: #333333; /* Texto escuro */
+            --color-light-text: #7f8c8d; /* Texto cinza claro */
+            --color-border: #e0e0e0; /* Borda clara */
+            --color-shadow: rgba(0, 0, 0, 0.08); /* Sombra suave */
+            --color-highlight: #ecf0f1; /* Destaque sutil */
+        }
+
+        /* ===== CSS GERAL E DE COMPONENTES (MANTIDO) ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* ===== NAVBAR SUPERIOR ===== */
+        .top-navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: #2c3e50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+
+        /* --- NOVO CSS PARA O ÍCONE DA CONTA --- */
+        .navbar-right a {
+            color: #f5f5f5; /* Cor cinza claro/branco para o ícone */
+            text-decoration: none; /* Remove o sublinhado padrão dos links */
+            margin-right: 15px; /* Mantém o espaçamento igual ao dos outros ícones */
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        /* Garante que a cor permaneça cinza/branca nos estados :hover, :focus e :active */
+        .navbar-right a:hover,
+        .navbar-right a:focus,
+        .navbar-right a:active {
+            color: #ccc; /* Tom um pouco mais escuro no hover para dar feedback */
+        }
+
+        /* Garante que o ícone de usuário dentro do link adote a cor */
+        .navbar-right a .fas {
+            color: inherit; /* Herda a cor definida acima */
+        }
+
+        .logo-container {
+            width: 40px;
+            height: 40px;
+            background-color: #34495e;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #95a5a6;
+        }
+
+        .logo {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .navbar-center {
+            display: flex;
+            gap: 10px;
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #ecf0f1;
+            font-size: 1.2em;
+        }
+
+        .menu-item {
+            width: auto;
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            color: #ecf0f1;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            transition: background-color 0.3s ease;
+            text-decoration: none; 
+            border-radius: 5px;
+        }
+
+        .menu-item:hover {
+            background-color: #34495e;
+        }
+
+        .menu-item.active {
+            background-color: #27ae60;
+            font-weight: bold;
+        }
+
+        .menu-icon {
+            font-size: 16px;
+        }
+
+        /* ===== CONTEÚDO PRINCIPAL (Sem sidebar) ===== */
+        .main-content {
+            margin-top: 60px;
+            padding: 30px; /* Mais padding */
+            min-height: calc(100vh - 60px);
+            display: flex;
+            gap: 30px; /* Mais espaço entre os painéis */
+        }
+        
+        /* Título da Página */
+        .page-title {
+            font-size: 2.5em;
+            color: var(--color-secondary);
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        
+        /* ===== PAINEL DE FILTROS (Card moderno) ===== */
+        .btn-scheduler-view {
+            display: inline-block;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--color-secondary);
+            color: var(--color-card);
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1em;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 4px 8px rgba(52, 73, 94, 0.3);
+        }
+        
+        .btn-scheduler-view:hover {
+            background-color: #2c3e50;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 10px rgba(52, 73, 94, 0.4);
+        }
+        
+        .btn-scheduler-view i {
+            margin-right: 8px;
+        }
+        .calendar-sidebar {
+            flex: 0 0 300px; /* Ligeiramente mais largo */
+            background-color: var(--color-card);
+            padding: 25px;
+            border-radius: 12px; /* Bordas mais arredondadas */
+            box-shadow: 0 6px 20px var(--color-shadow);
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            border: 1px solid var(--color-border);
+        }
+
+        .calendar-sidebar h3 {
+            color: var(--color-secondary);
+            margin-bottom: 25px;
+            border-bottom: 2px solid var(--color-highlight);
+            padding-bottom: 10px;
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--color-secondary);
+            font-size: 1em;
+        }
+
+        .filter-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 1em;
+            background-color: var(--color-highlight);
+            color: var(--color-text);
+            transition: border-color 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .filter-group select:focus {
+            border-color: var(--color-primary);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(46, 204, 113, 0.2);
+        }
+
+        /* ===== CALENDÁRIO FULLCALENDAR (Card principal) ===== */
+        .calendar-container {
+            flex-grow: 1;
+            background-color: var(--color-card);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px var(--color-shadow);
+            border: 1px solid var(--color-border);
+        }
+        
+        /* Estilos FullCalendar */
+        .fc {
+            font-family: 'Poppins', 'Arial', sans-serif;
+        }
+        
+        .fc-toolbar-title {
+            font-size: 1.8em !important;
+            color: var(--color-secondary);
+            font-weight: 700;
+        }
+        
+        /* Estilo para os botões da toolbar */
+        .fc-button {
+            background-color: var(--color-primary) !important;
+            border-color: var(--color-primary) !important;
+            color: white !important;
+            text-transform: capitalize !important;
+            box-shadow: 0 2px 4px rgba(46, 204, 113, 0.4);
+            transition: all 0.3s ease;
+            border-radius: 6px !important;
+            font-weight: 500;
+        }
+        
+        .fc-button:hover {
+            background-color: #27ae60 !important;
+            border-color: #27ae60 !important;
+            box-shadow: 0 4px 8px rgba(46, 204, 113, 0.6);
+        }
+
+        /* Estilo para separar os botões dentro dos grupos (prev, next, today) e (month, week, day) */
+        .fc-button-group > .fc-button {
+            margin: 0 4px !important; /* Adiciona 4px de margem horizontal a cada botão */
+        }
+        
+        /* Ajuste para remover a margem do primeiro e último botão para não desalinharem */
+        .fc-button-group > .fc-button:first-child {
+            margin-left: 0 !important;
+        }
+        
+        .fc-button-group > .fc-button:last-child {
+            margin-right: 0 !important;
+        }
+        
+        .fc-button-primary:not(:disabled).fc-button-active {
+            background-color: var(--color-secondary) !important;
+            border-color: var(--color-secondary) !important;
+            box-shadow: none;
+        }
+        
+        /* Estilo para o cabeçalho do dia */
+        .fc-col-header-cell-cushion {
+            color: var(--color-light-text);
+            font-weight: 600;
+            padding-top: 10px;
+            padding-bottom: 10px;
+            font-size: 0.9em;
+        }
+        
+        /* Estilo para os números do dia */
+        .fc-daygrid-day-number {
+            font-weight: 600;
+            color: var(--color-secondary);
+            padding: 8px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .fc-day-today {
+            background-color: var(--color-highlight) !important;
+        }
+        
+        /* Estilo para o evento */
+        .fc-event {
+            border-radius: 6px !important;
+            padding: 5px 8px !important;
+            font-size: 12px !important;
+            font-weight: 500;
+            margin-bottom: 4px;
+            border: none !important;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .fc-event:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Cores dos eventos por status (Mais suaves) */
+        .fc-event.to-do {
+            background-color: #f8d7da; /* Vermelho Claro - A Fazer */
+            color: #721c24;
+        }
+
+        .fc-event.in-progress {
+            background-color: #fff3cd; /* Amarelo Claro - Em Andamento */
+            color: #856404;
+        }
+
+        .fc-event.done {
+            background-color: #d4edda; /* Verde Claro - Concluído */
+            color: #155724;
+        }
+        
+        /* Cores dos eventos por prioridade (Indicador visual mais forte na borda) */
+        .fc-event.priority-high { border-left: 6px solid #e74c3c !important; } 
+        .fc-event.priority-medium { border-left: 6px solid #f1c40f !important; } 
+        .fc-event.priority-low { border-left: 6px solid #2ecc71 !important; } 
+
+        /* Ajuste para o texto do evento em dayGrid */
+        .fc-daygrid-event-dot {
+            display: none; 
+        }
+        
+        .fc-event-title {
+            white-space: normal; 
+        }
+
+        /* Tooltip de resumo (Design moderno) */
+        .task-tooltip {
+            position: fixed; 
+            background-color: var(--color-secondary); 
+            color: var(--color-card); 
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 9999; 
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            max-width: 350px;
+            line-height: 1.5;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            transform: translateY(10px); 
+        }
+
+        .task-tooltip.active {
+            opacity: 1;
+            transform: translateY(0); 
+        }
+        
+        .tooltip-title {
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--color-primary); 
+            font-size: 1.2em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 5px;
+        }
+        
+        .task-tooltip div {
+            margin-bottom: 6px;
+        }
+        
+        .task-tooltip i {
+            margin-right: 8px;
+            color: var(--color-primary);
+        }
+
+
+        /* Responsividade */
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+                padding: 20px;
+            }
+            .calendar-sidebar {
+                flex: 1 1 auto;
+                max-height: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-navbar">
+        <div class="navbar-left">
+            <div class="logo-container">
+                <img src="imagens/logo.png" alt="Logo" class="logo">
+            </div>
+            </div>
+        <div class="navbar-center">
+            <a href="dashboard.html" class="menu-item"><i class="fas fa-chart-line menu-icon"></i> <span>Dashboard</span></a>
+            <a href="tarefas.html" class="menu-item"><i class="fas fa-tasks menu-icon"></i> <span>Tarefas</span></a>
+            <a href="calendario.html" class="menu-item active"><i class="fas fa-calendar-alt menu-icon"></i> <span>Calendário</span></a>
+            <a href="mapa.html" class="menu-item"><i class="fas fa-map-marked-alt menu-icon"></i> <span>Mapa</span></a>
+        </div>
+        <div class="navbar-right">
+            <a href="configuracoes.html" title="Configurações">
+                <i class="fas fa-cog"></i>
+            </a>
+            <a href="conta.html" title="Minha Conta">
+                <i class="fas fa-user-circle"></i>
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="calendar-sidebar">
+            <h3>Filtros de Agenda</h3>
+            <div class="filter-group">
+                <label for="filterStatus">Status</label>
+                <select id="filterStatus" onchange="renderCalendar()">
+                    <option value="all">Todos</option>
+                    <option value="to-do">A Fazer (Pendentes)</option>
+                    <option value="today">Tarefas do Dia</option>
+                    <option value="upcoming">Próximas Tarefas</option>
+                    <option value="done">Concluído</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterLocation">Local</label>
+                <select id="filterLocation" onchange="renderCalendar()">
+                    <option value="all">Todos os Locais</option>
+                    <option value="santo-andre">Santo André</option>
+                    <option value="maua">Mauá</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filterResponsible">Responsável</label>
+                <select id="filterResponsible" onchange="renderCalendar()">
+                    <option value="all">Todos os Responsáveis</option>
+                    </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterWasteType">Tipo de Lixo</label>
+                <select id="filterWasteType" onchange="renderCalendar()">
+                    <option value="all">Todos os Tipos</option>
+                    <option value="computadores">Computadores</option>
+                    <option value="celulares">Celulares</option>
+                    <option value="televisores">Televisores</option>
+                    <option value="eletrodomesticos">Eletrodomésticos</option>
+                    <option value="baterias">Baterias</option>
+                    <option value="cabos">Cabos e Fios</option>
+                    <option value="outros">Outros</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterRegion">Região</label>
+                <select id="filterRegion" onchange="renderCalendar()">
+                    <option value="all">Todas as Regiões</option>
+                    </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterVehicle">Veículo</label>
+                <select id="filterVehicle" onchange="renderCalendar()">
+                    <option value="all">Todos os Veículos</option>
+                    <option value="carro">Carro</option>
+                    <option value="moto">Moto</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filterPriority">Prioridade</label>
+                <select id="filterPriority" onchange="renderCalendar()">
+                    <option value="all">Todas as Prioridades</option>
+                    <option value="high">Alta</option>
+                    <option value="medium">Média</option>
+                    <option value="low">Baixa</option>
+                </select>
+            </div>
+            
+            <div class="filter-group" style="margin-top: 30px; text-align: center;">
+                <a href="calendario_scheduler.html" class="btn-scheduler-view">
+                    <i class="fas fa-calendar-check"></i> Visualização de Agendador
+                </a>
+            </div>
+        </div>
+
+        <div class="calendar-container">
+            <div id='calendar'></div>
+        </div>
+    </main>
+
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script src="script.js"></script>
+    <script src="tarefas.js"></script>
+
+    <script>
+    let calendar;
+    let tooltip;
+    // A variável 'tasks' agora vem de 'tarefas.js' e será preenchida pelo Supabase
+
+    // [!] MUDANÇA: O DOMContentLoaded agora é 'async' [!]
+    document.addEventListener("DOMContentLoaded", async function() {
+        // [NOVA LINHA] Carrega a preferência de Dark Mode imediatamente
+        loadDarkModePreference();
+        initializeCalendarElements();
+        
+        // [!] MUDANÇA: Precisamos 'await' (esperar) o Supabase [!]
+        await loadTasksFromStorage(); 
+        
+        // O resto só roda depois que as tarefas carregam
+        populateResponsibleFilter();
+        populateRegionFilter();
+        initializeCalendar();
+    });
+
+    function initializeCalendarElements() {
+        // Cria o elemento tooltip
+        tooltip = document.createElement('div');
+        tooltip.className = 'task-tooltip';
+        document.body.appendChild(tooltip);
+    }
+
+    // --- FUNÇÃO MODO ESCURO ---
+    /**
+     * Carrega a preferência salva e aplica o modo escuro, se necessário.
+     */
+    function loadDarkModePreference() {
+        const isDarkMode = localStorage.getItem('darkMode') === 'enabled';
+        if (isDarkMode) {
+            document.body.classList.add('dark-mode');
+        } else {
+            document.body.classList.remove('dark-mode');
+        }
+    }
+
+    // ===== FUNÇÕES DE FILTRO E CALENDÁRIO =====
+    // Esta lógica de filtro é do calendário e lê a variável 'tasks'
+    // que já foi carregada pelo 'loadTasksFromStorage'
+
+    function populateRegionFilter() {
+        const regionSelect = document.getElementById("filterRegion");
+        if (!regionSelect) return;
+        const fixedRegions = [
+            { value: "norte", label: "Região Norte" },
+            { value: "sul", label: "Região Sul" },
+            { value: "leste", label: "Região Leste" },
+            { value: "oeste", label: "Região Oeste" },
+            { value: "centro", label: "Região Centro" }
+        ];
+        regionSelect.innerHTML = '<option value="all">Todas as Regiões</option>';
+        fixedRegions.forEach(region => {
+            const option = document.createElement("option");
+            option.value = region.value;
+            option.textContent = region.label;
+            regionSelect.appendChild(option);
+        });
+    }
+
+    function populateResponsibleFilter() {
+        const responsibleSelect = document.getElementById("filterResponsible");
+        if (!responsibleSelect) return;
+        // 'tasks' agora vem do Supabase via 'loadTasksFromStorage'
+        const uniqueResponsibles = [...new Set(tasks.map(t => t.responsible).filter(r => r))];
+        responsibleSelect.innerHTML = '<option value="all">Todos os Responsáveis</option>';
+        uniqueResponsibles.forEach(responsible => {
+            const option = document.createElement("option");
+            option.value = responsible;
+            option.textContent = responsible;
+            responsibleSelect.appendChild(option);
+        });
+    }
+    
+    function getFilteredEvents() {
+        const statusFilter = document.getElementById("filterStatus").value;
+        const locationFilter = document.getElementById("filterLocation").value;
+        const responsibleFilter = document.getElementById("filterResponsible").value;
+        const wasteTypeFilter = document.getElementById("filterWasteType").value;
+        const priorityFilter = document.getElementById("filterPriority").value;
+        const regionFilter = document.getElementById("filterRegion").value;
+        const vehicleFilter = document.getElementById("filterVehicle").value;
+
+        return tasks
+            .filter(task => {
+                // Filtro por Status
+                if (statusFilter !== 'all') {
+                    const today = new Date().toISOString().split('T')[0];
+                    if (statusFilter === 'done') {
+                        if (task.status !== 'done') return false;
+                    } else if (statusFilter === 'to-do') {
+                        if (task.status === 'done') return false;
+                    } else if (statusFilter === 'today') {
+                        if (task.status === 'done' || task.collectionDate !== today) return false;
+                    } else if (statusFilter === 'upcoming') {
+                        if (task.status === 'done' || task.collectionDate <= today) return false;
+                    }
+                }
+                // Filtro por Local
+                // NOTA: Este filtro usa "santo-andre" (value do HTML) mas o Supabase
+                // (via ViaCEP) salva "Santo André". Este filtro pode não funcionar
+                // como esperado sem um ajuste nos 'value' do HTML ou na lógica.
+                if (locationFilter !== 'all' && task.location !== locationFilter) {
+                    // Temporariamente, vamos ignorar a diferença de maiúsculas
+                    if (task.location && task.location.toLowerCase() !== locationFilter.toLowerCase()) {
+                         // Se o seu 'value' é 'santo-andre', esta lógica não vai bater.
+                         // O ideal seria o 'value' ser "Santo André"
+                    }
+                }
+                // Filtro por Responsável
+                if (responsibleFilter !== 'all' && task.responsible !== responsibleFilter) {
+                    return false;
+                }
+                // Filtro por Tipo de Lixo
+                if (wasteTypeFilter !== 'all' && task.wasteType !== wasteTypeFilter) {
+                    return false;
+                }
+                // Filtro por Prioridade
+                if (priorityFilter !== 'all' && task.priority !== priorityFilter) {
+                    return false;
+                }
+                // Filtro por Região
+                // NOTA: O 'task.region' do Supabase é o BAIRRO (ex: "Vila Assis")
+                // O filtro aqui é 'norte', 'sul' etc. Isso não vai funcionar.
+                // if (regionFilter !== 'all' && task.region !== regionFilter) {
+                //     return false;
+                // }
+                
+                // Filtro por Veículo
+                if (vehicleFilter !== 'all' && task.vehicle !== vehicleFilter) {
+                    return false;
+                }
+                return true;
+            })
+            .map(task => {
+                // Mapeia a tarefa para o formato de evento do FullCalendar
+                const eventDate = task.collectionDate;
+                const eventTime = task.collectionTime || '00:00:00'; // Garante uma hora válida
+                const startDateTime = `${eventDate}T${eventTime}`;
+
+                return {
+                    id: task.id,
+                    title: `${getLocationLabel(task.location) || task.location} - ${task.name}`,
+                    start: startDateTime,
+                    allDay: false,
+                    classNames: [task.status, `priority-${task.priority}`], // Adiciona classes para status e prioridade
+                    extendedProps: task // Armazena todos os dados da tarefa
+                };
+            });
+    }
+
+    function initializeCalendar() {
+        const calendarEl = document.getElementById('calendar');
+        
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'pt-br',
+            editable: true, // Permite arrastar e redimensionar (opcional)
+            dayMaxEvents: true, // Permite o link "more" quando há muitos eventos
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: getFilteredEvents(), // Carrega os eventos iniciais
+            eventClick: function(info) {
+                // Redireciona para a tela de tarefas ao clicar
+                window.location.href = `tarefas.html?taskId=${info.event.id}`;
+            },
+            eventMouseEnter: function(info) {
+                // Exibe o tooltip ao passar o mouse
+                const task = info.event.extendedProps;
+                
+                // Estas funções globais vêm de 'tarefas.js'
+                const wasteLabel = (window.wasteTypeLabels && window.wasteTypeLabels[task.wasteType]) || task.wasteType;
+                const locationLabel = window.getLocationLabel ? getLocationLabel(task.location) : (task.location || 'N/D');
+                const regionLabel = window.getRegionLabel ? getRegionLabel(task.location, task.region) : (task.region || 'N/D');
+                
+                // Adiciona o status
+                let statusText = '';
+                if (task.status === 'to-do') statusText = 'A Fazer';
+                else if (task.status === 'in-progress') statusText = 'Em Andamento';
+                else if (task.status === 'done') statusText = 'Concluído';
+
+                tooltip.innerHTML = `
+                    <div class="tooltip-title">${task.name}</div>
+                    <div><i class="fas fa-info-circle"></i> Status: ${statusText}</div>
+                    <div><i class="fas fa-exclamation-triangle"></i> Prioridade: ${task.priority ? task.priority.toUpperCase() : 'MÉDIA'}</div>
+                    <div><i class="fas fa-map-marker-alt"></i> Local: ${locationLabel} (${regionLabel})</div>
+                    <div><i class="fas fa-trash-alt"></i> Tipo de Lixo: ${wasteLabel}</div>
+                    <div><i class="fas fa-user"></i> Responsável: ${task.responsible || 'N/D'}</div>
+                    <div style="margin-top: 8px; font-style: italic; color: #ccc; font-size: 0.9em;">${task.description}</div>
+                `;
+                
+                // Posiciona o tooltip usando a posição do mouse
+                const mouseX = info.jsEvent.clientX;
+                const mouseY = info.jsEvent.clientY;
+                
+                // Calcula a posição
+                let left = mouseX - (tooltip.offsetWidth / 2);
+                let top = mouseY - tooltip.offsetHeight - 15 + window.scrollY; // 15px acima do cursor
+                
+                // Garante que o tooltip não saia da tela
+                if (left < 10) left = 10;
+                if (left + tooltip.offsetWidth > window.innerWidth - 10) left = window.innerWidth - tooltip.offsetWidth - 10;
+                if (top < window.scrollY + 10) top = mouseY + 15 + window.scrollY; // 15px abaixo do cursor
+
+                tooltip.style.left = left + 'px';
+                tooltip.style.top = top + 'px';
+                tooltip.classList.add('active');
+            },
+            eventMouseLeave: function(info) {
+                // Oculta o tooltip ao sair do mouse
+                tooltip.classList.remove('active');
+            }
+        });
+
+        calendar.render();
+    }
+    
+    // [!] MUDANÇA: Esta função agora é 'async' para recarregar do Supabase [!]
+    async function renderCalendar() {
+        // Recarrega as tarefas do Supabase
+        await loadTasksFromStorage();
+        
+        // Atualiza o filtro de responsáveis com os novos dados
+        populateResponsibleFilter();
+
+        // Atualiza os eventos do calendário
+        calendar.removeAllEvents();
+        calendar.addEventSource(getFilteredEvents());
+    }
+    
+    // Expondo a função 'async' para o 'onchange' do HTML
+    window.renderCalendar = renderCalendar;
+</script>
+
+</body>
+</html>

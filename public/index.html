@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terra Reciclagem - Bem-vindo</title>
+    <style>
+        /* Estilos copiados do seu login.html para consistência */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2d5a3d, #1e3d2a);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column; /* Organiza logo e cartões */
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Logo */
+        .logo {
+            margin-bottom: 40px;
+        }
+
+        #logo-img {
+            width: 120px;
+            height: auto;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Container dos Cartões */
+        .selection-container {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            flex-wrap: wrap; /* Para telas menores */
+        }
+
+        /* Cartão de Opção */
+        .option-card {
+            background: rgba(139, 195, 139, 0.9);
+            border-radius: 20px;
+            padding: 40px 35px;
+            width: 280px;
+            max-width: 80%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            position: relative;
+            backdrop-filter: blur(10px);
+            text-decoration: none;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .option-icon {
+            background: #2d5a3d;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: -60px auto 20px auto;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .option-icon svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .option-title {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .option-description {
+            font-size: 14px;
+            color: #f0f0f0;
+        }
+
+        /* Responsividade */
+        @media (max-width: 960px) {
+            .selection-container {
+                flex-direction: column;
+                gap: 50px; /* Aumenta o gap no modo coluna */
+            }
+            .option-card {
+                width: 350px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo {
+                margin-bottom: 30px;
+            }
+            #logo-img {
+                width: 100px;
+            }
+            .selection-container {
+                gap: 40px;
+            }
+            .option-card {
+                width: 90%;
+                padding: 30px 25px;
+            }
+            .option-title {
+                font-size: 24px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="logo">
+            <img src="imagens/logo.png" alt="Terra Reciclagem" id="logo-img">
+        </div>
+
+        <div class="selection-container">
+
+            <a href="login.html" class="option-card">
+                <div class="option-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-12.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 8c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm6.8-5c-.11 0-.21.02-.3.05-.5.16-1.01.2-1.5.2-.42 0-.82-.04-1.2-.1-.58-.09-1.16-.1-1.8-.1s-1.22.01-1.8.1c-.38.06-.78.1-1.2.1-.49 0-1-.04-1.5-.2-.09-.03-.19-.05-.3-.05-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5c.3 0 .59-.09.83-.24.23.23.48.44.75.63.48.33 1.01.52 1.58.61.3.05.6.09.94.09s.64-.04.94-.09c.57-.09 1.1-.28 1.58-.61.27-.19.52-.4.75-.63.24.15.53.24.83.24.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5z" fill="white"/>
+                    </svg>
+                </div>
+                <h1 class="option-title">Motorista</h1>
+                <p class="option-description">Acessar o painel de coletas e rotas.</p>
+            </a>
+
+            <a href="login.html" class="option-card">
+                <div class="option-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="white"/>
+                        <path d="M12 14C7.58172 14 4 17.5817 4 22H20C20 17.5817 16.4183 14 12 14Z" fill="white"/>
+                    </svg>
+                </div>
+                <h1 class="option-title">Admin</h1>
+                <p class="option-description">Gerenciar o sistema e ver relatórios.</p>
+            </a>
+
+            <a href="registro.html" class="option-card">
+                <div class="option-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 4V3c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v1H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-5zm-3-1c.55 0 1 .45 1 1v1h-2V4c0-.55.45-1 1-1zM5 17l3.5-4.5 2.5 3.01L14.5 11l4.5 6H5z" fill="white"/>
+                    </svg>
+                </div>
+                <h1 class="option-title">Registrar</h1>
+                <p class="option-description">Criar uma nova conta no sistema.</p>
+            </a>
+
+        </div>
+    </div>
+</body>
+</html>

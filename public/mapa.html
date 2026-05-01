@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Coletas - EcoRecycle</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; }
+
+        /* Navbar */
+        .top-navbar {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px;
+            background-color: #2c3e50; display: flex; align-items: center;
+            justify-content: space-between; padding: 0 20px; z-index: 1000;
+        }
+        .navbar-center { display: flex; gap: 15px; }
+        .menu-item {
+            padding: 8px 12px; color: #ecf0f1; text-decoration: none;
+            font-size: 14px; border-radius: 4px; transition: 0.3s;
+        }
+        .menu-item:hover { background-color: #34495e; }
+        .menu-item.active { background-color: #27ae60; }
+
+        /* Conteúdo */
+        .main-content { margin-top: 60px; padding: 20px; height: calc(100vh - 60px); }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        #map {
+            height: calc(100% - 80px); width: 100%;
+            border-radius: 12px; border: 2px solid #ddd;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        /* Estilo do Balão do Mapa */
+        .popup-content { font-size: 14px; line-height: 1.4; }
+        .btn-gps {
+            display: inline-block; margin-top: 8px; padding: 6px 12px;
+            background: #27ae60; color: white; text-decoration: none;
+            border-radius: 4px; font-weight: bold; text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="top-navbar">
+        <div class="navbar-left"><strong style="color: white;">EcoRecycle</strong></div>
+        <div class="navbar-center">
+            <a href="tarefas.html" class="menu-item"><i class="fas fa-tasks"></i> Tarefas</a>
+            <a href="mapa.html" class="menu-item active"><i class="fas fa-map-marked-alt"></i> Mapa</a>
+        </div>
+        <div class="navbar-right" style="color: white;"><i class="fas fa-user-circle"></i></div>
+    </nav>
+
+    <main class="main-content">
+        <div class="section-header">
+            <h2>Rotas de Coleta - Hoje</h2>
+            <div id="map-status"><i class="fas fa-sync fa-spin"></i> Sincronizando com Supabase...</div>
+        </div>
+        
+        <div id="map"></div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script src="configuracoes.js"></script> 
+    <script src="mapa.js" defer></script>
+
+</body>
+</html>
