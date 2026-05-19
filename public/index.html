@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terra Reciclagem - Bem-vindo</title>
     <style>
-        /* Estilos copiados do seu login.html para consistência */
+        /* ===== CSS RESET E GERAL ===== */
         * {
             margin: 0;
             padding: 0;
@@ -27,14 +27,15 @@
             height: 100vh;
             position: relative;
             display: flex;
-            flex-direction: column; /* Organiza logo e cartões */
+            flex-direction: column; /* Organiza logo em cima e cartões embaixo */
             align-items: center;
             justify-content: center;
+            padding: 20px;
         }
 
         /* Logo */
         .logo {
-            margin-bottom: 40px;
+            margin-bottom: 50px;
         }
 
         #logo-img {
@@ -46,21 +47,23 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
-        /* Container dos Cartões */
+        /* Container dos Cartões (Ajustado para 2 itens) */
         .selection-container {
             display: flex;
-            gap: 30px;
+            gap: 40px;
             justify-content: center;
-            flex-wrap: wrap; /* Para telas menores */
+            flex-wrap: wrap; 
+            max-width: 800px;
+            width: 100%;
         }
 
         /* Cartão de Opção */
         .option-card {
             background: rgba(139, 195, 139, 0.9);
             border-radius: 20px;
-            padding: 40px 35px;
-            width: 280px;
-            max-width: 80%;
+            padding: 45px 35px;
+            width: 320px; /* Aumentado levemente para melhor preenchimento com 2 cards */
+            max-width: 100%;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             text-align: center;
             position: relative;
@@ -71,8 +74,9 @@
         }
 
         .option-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            background: rgba(120, 180, 120, 0.95);
         }
 
         .option-icon {
@@ -83,8 +87,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: -60px auto 20px auto;
+            margin: -85px auto 25px auto; /* Mantém o ícone flutuando na borda superior */
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: background 0.3s ease;
+        }
+
+        .option-card:hover .option-icon {
+            background: #1e3d2a;
         }
 
         .option-icon svg {
@@ -101,39 +110,37 @@
 
         .option-description {
             font-size: 14px;
-            color: #f0f0f0;
+            color: #f5f5f5;
+            line-height: 1.4;
         }
 
-        /* Responsividade */
-        @media (max-width: 960px) {
+        /* ===== RESPONSIVIDADE ===== */
+        @media (max-width: 768px) {
             .selection-container {
                 flex-direction: column;
-                gap: 50px; /* Aumenta o gap no modo coluna */
+                align-items: center;
+                gap: 65px; /* Espaçamento maior para o ícone flutuante do card de baixo não sobrepor */
             }
             .option-card {
-                width: 350px;
+                width: 100%;
+                max-width: 340px;
             }
         }
 
         @media (max-width: 480px) {
             .logo {
-                margin-bottom: 30px;
+                margin-bottom: 40px;
             }
             #logo-img {
                 width: 100px;
             }
-            .selection-container {
-                gap: 40px;
-            }
             .option-card {
-                width: 90%;
-                padding: 30px 25px;
+                padding: 40px 25px;
             }
             .option-title {
                 font-size: 24px;
             }
         }
-
     </style>
 </head>
 <body>
@@ -152,7 +159,7 @@
                     </svg>
                 </div>
                 <h1 class="option-title">Motorista</h1>
-                <p class="option-description">Acessar o painel de coletas e rotas.</p>
+                <p class="option-description">Acessar o painel de coletas e rotas de transporte.</p>
             </a>
 
             <a href="login.html" class="option-card">
@@ -163,17 +170,7 @@
                     </svg>
                 </div>
                 <h1 class="option-title">Admin</h1>
-                <p class="option-description">Gerenciar o sistema e ver relatórios.</p>
-            </a>
-
-            <a href="registro.html" class="option-card">
-                <div class="option-icon">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M15 4V3c0-1.1-.9-2-2-2h-2c-1.1 0-2 .9-2 2v1H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-5zm-3-1c.55 0 1 .45 1 1v1h-2V4c0-.55.45-1 1-1zM5 17l3.5-4.5 2.5 3.01L14.5 11l4.5 6H5z" fill="white"/>
-                    </svg>
-                </div>
-                <h1 class="option-title">Registrar</h1>
-                <p class="option-description">Criar uma nova conta no sistema.</p>
+                <p class="option-description">Gerenciar o sistema, gerir usuários e emitir relatórios.</p>
             </a>
 
         </div>

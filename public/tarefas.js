@@ -12,12 +12,8 @@ window.tasks = [];
 let taskIdToDelete = null;
 let currentUserId = null; 
 
-// --- Constantes e Mapeamentos (MANTIDOS) ---
-window.wasteTypeLabels = {
-    "computadores": "Computadores", "celulares": "Celulares", "televisores": "Tvs",
-    "eletrodomesticos": "Eletrodomésticos", "baterias": "Baterias", "cabos": "Cabos/Fios",
-    "outros": "Outros"
-};
+// --- Mapeamento Dinâmico de Resíduos (Substitui o objeto fixo anterior) ---
+window.wasteTypeLabels = {};
 
 window.priorityIcons = {
     "high": '<i class="fas fa-exclamation-circle" style="color: #ff5630;"></i>',
@@ -45,7 +41,7 @@ window.regionsByLocation = {
 // ===== FUNÇÕES CRÍTICAS DE UTILIDADE (RESOLVE REFERENCE ERRORS) =====
 // ==========================================================
 
-// --- FUNÇÕES DE LOGOUT (Deve estar no topo) ---
+// --- FUNÇÕES DE LOGOUT ---
 async function handleLogout() {
     const { error } = await supabaseClient.auth.signOut();
     if (!error) {
@@ -56,7 +52,7 @@ async function handleLogout() {
     }
 }
 
-// --- FUNÇÕES DE MODAL/CONFIRMAÇÃO (CHAMADAS DIRETAMENTE PELO HTML) ---
+// --- FUNÇÕES DE MODAL/CONFIRMAÇÃO ---
 function openConfirmModal(taskId, taskName) {
     taskIdToDelete = taskId;
     const nameSpan = document.getElementById("taskToDeleteName");
@@ -96,8 +92,7 @@ function closeTaskModal() {
     if (cepStatus) cepStatus.textContent = "";
 }
 
-
-// --- FUNÇÃO DE EDIÇÃO (CHAMADA PELO CREATE TASK CARD) ---
+// --- FUNÇÃO DE EDIÇÃO ---
 function editTask(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
@@ -120,8 +115,6 @@ function editTask(taskId) {
     taskForm.setAttribute("data-editing-id", task.id.toString());
     openTaskModal(true);
 }
-// --- FIM FUNÇÕES CRÍTICAS MOVIDAS ---
-
 
 // Variáveis de Estado de Filtro
 let currentFilters = {
@@ -136,7 +129,7 @@ let sidebarFiltersForm;
 let advFilterToggleBtn, advFilterPanel, advFilterApplyBtn, advFilterClearBtn;
 
 // ==========================================================
-// ===== LÓGICA DE INICIALIZAÇÃO E AUTENTICAÇÃO (MANTIDA) =====
+// ===== LÓGICA DE INICIALIZAÇÃO E AUTENTICAÇÃO =====
 // ==========================================================
 document.addEventListener("DOMContentLoaded", async function() {
     
@@ -149,13 +142,17 @@ document.addEventListener("DOMContentLoaded", async function() {
     
     currentUserId = user.id; 
 
-    // Configurações Específicas da Página
+    // Configurações Específicas da Página de Tarefas
     if (document.getElementById("tarefas-section")) {
         console.log("Inicializando página: Tarefas");
         initializeElements();
         setupEventListeners();
+        
+        // ORDEM CRÍTICA: Carrega os tipos de lixo antes de puxar e renderizar os cards
+        await loadWasteTypesFromDatabase(); 
         await loadTasksFromStorage(); 
         await loadMotoristasProfiles(); 
+        
         syncFilterInputs(); 
         renderSummary(); 
         renderTasks();
@@ -173,13 +170,11 @@ document.addEventListener("DOMContentLoaded", async function() {
         if (typeof initializePage_CalendarioScheduler === 'function') await initializePage_CalendarioScheduler();
     }
 
-    // Configura o botão de Logout (usando a função definida acima)
     const logoutBtn = document.querySelector('.logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout); 
     }
 
-    // Exibir nome do usuário logado (Se o elemento existir no HTML)
     const userNameElement = document.getElementById('userName');
     if (userNameElement && user.user_metadata.full_name) {
         userNameElement.textContent = user.user_metadata.full_name;
@@ -188,10 +183,10 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 });
 
-// Funções de inicialização específicas de cada página (MANTIDAS)
 async function initializePage_Tarefas() {
     initializeElements();
     setupEventListeners();
+    await loadWasteTypesFromDatabase();
     await loadTasksFromStorage(); 
     await loadMotoristasProfiles();
     syncFilterInputs(); 
@@ -199,21 +194,47 @@ async function initializePage_Tarefas() {
     renderTasks();
 }
 
-async function initializePage_Dashboard() {
-    if (typeof initializeElements_Dashboard === 'function') initializeElements_Dashboard();
-    if (typeof setupEventListeners_Dashboard === 'function') setupEventListeners_Dashboard();
-    await loadTasksFromStorage(); 
-    if (typeof initializeDashboard === 'function') initializeDashboard();
-}
+// ==========================================================
+// ===== [NOVO] FUNÇÃO PARA CARREGAR E POVOAR OS RESÍDUOS =====
+// ==========================================================
+async function loadWasteTypesFromDatabase() {
+    console.log("Buscando tipos de lixo no Supabase...");
+    try {
+        const { data, error } = await supabaseClient
+            .from('waste_types')
+            .select('value, label')
+            .order('label', { ascending: true });
 
-async function initializePage_Calendario() {
-    console.log("Função de inicialização do Calendário Padrão (TODO)");
-}
+        if (error) throw error;
 
-async function initializePage_CalendarioScheduler() {
-    console.log("Função de inicialização do Calendário Scheduler (TODO)");
-}
+        // 1. Atualiza dinamicamente o mapa global de rótulos do sistema
+        window.wasteTypeLabels = {};
+        data.forEach(item => {
+            window.wasteTypeLabels[item.value] = item.label;
+        });
 
+        // 2. Povoa o select do Formulário de Nova Tarefa (#wasteType)
+        const formSelect = document.getElementById('wasteType');
+        if (formSelect) {
+            formSelect.innerHTML = data.map(item => `
+                <option value="${item.value}">${item.label}</option>
+            `).join('');
+        }
+
+        // 3. Povoa o select do Painel Avançado de Filtros (#adv-filter-waste-type)
+        const filterSelect = document.getElementById('adv-filter-waste-type');
+        if (filterSelect) {
+            filterSelect.innerHTML = '<option value="all">Todos</option>' + data.map(item => `
+                <option value="${item.value}">${item.label}</option>
+            `).join('');
+        }
+
+    } catch (err) {
+        console.error("Erro ao sincronizar tipos de resíduos:", err.message);
+        // Fallback defensivo caso o banco caia temporariamente
+        window.wasteTypeLabels = { "computadores": "Computadores", "celulares": "Celulares" };
+    }
+}
 
 // Funções de inicialização de elementos e eventos (Tarefas)
 function initializeElements() {
@@ -235,7 +256,6 @@ function setupEventListeners() {
     if (cancelBtn) cancelBtn.addEventListener("click", closeTaskModal);
     if (taskForm) taskForm.addEventListener("submit", handleTaskSubmit);
     
-    // ... (Outros Event Listeners MANTIDOS)
     const confirmDeleteModal = document.getElementById("confirmDeleteModal");
     if (confirmDeleteModal) {
         confirmDeleteModal.addEventListener("click", function(e) {
@@ -269,43 +289,8 @@ function setupEventListeners() {
     }
 }
 
-// Funções do Modal (MANTIDAS)
-function openTaskModal(isEditing = false) {
-    if (taskModal) taskModal.classList.add("active");
-
-    if (!isEditing && taskForm) {
-        taskForm.reset();
-        
-        const today = new Date().toISOString().split("T")[0];
-        const collectionDateEl = document.getElementById("collectionDate");
-        if (collectionDateEl) collectionDateEl.value = today;
-        
-        const cepStatus = document.getElementById("cep-status");
-        if (cepStatus) cepStatus.textContent = "";
-        
-        taskForm.removeAttribute("data-editing-id");
-        
-        const modalTitle = document.querySelector(".modal-header h3");
-        if (modalTitle) {
-            modalTitle.textContent = "Nova Tarefa - Coleta de Lixo Eletrônico";
-        }
-    } else if (isEditing) {
-        const modalTitle = document.querySelector(".modal-header h3");
-        if (modalTitle) {
-            modalTitle.textContent = "Editar Tarefa - Coleta de Lixo Eletrônico";
-        }
-    }
-}
-    
-function closeTaskModal() {
-    if (taskModal) taskModal.classList.remove("active");
-    const cepStatus = document.getElementById("cep-status");
-    if (cepStatus) cepStatus.textContent = "";
-}
-
-
 // ==========================================================
-// ===== FUNÇÕES API VIACEP (MANTIDAS) =====
+// ===== FUNÇÕES API VIACEP =====
 // ==========================================================
 function handleCepInput(e) {
     const cepInput = e.target;
@@ -369,9 +354,8 @@ function clearAddressFields() {
 
 
 // ==========================================================
-// ===== FUNÇÕES DE POPULAMENTO (MOTORISTAS) [NOVO] =====
+// ===== FUNÇÕES DE POPULAMENTO (MOTORISTAS) =====
 // ==========================================================
-
 async function loadMotoristasProfiles() {
     const { data, error } = await supabaseClient
         .from('profiles')
@@ -406,7 +390,6 @@ function populateResponsibleSelect(motoristas) {
 // ==========================================================
 // ===== FUNÇÕES DE GERENCIAMENTO DE TAREFAS (BD) =====
 // ==========================================================
-
 async function handleTaskSubmit(e) {
     e.preventDefault();
     
@@ -419,7 +402,7 @@ async function handleTaskSubmit(e) {
     const formData = new FormData(taskForm);
     
     const taskData = {
-        user_id: currentUserId, // CRÍTICO: ID do criador da tarefa
+        user_id: currentUserId,
         name: formData.get("taskName"),
         description: formData.get("taskDescription") || "Sem descrição.",
         cep: formData.get("cep"),
@@ -430,7 +413,7 @@ async function handleTaskSubmit(e) {
         wasteType: formData.get("wasteType"),
         collectionDate: formData.get("collectionDate"),
         collectionTime: formData.get("collectionTime"),
-        responsible: formData.get("responsible"), // LÊ DO SELECT POPULADO
+        responsible: formData.get("responsible"),
         vehicle: formData.get("vehicle"),
         priority: formData.get("priority") || "medium",
     };
@@ -438,7 +421,6 @@ async function handleTaskSubmit(e) {
     let error;
 
     if (editingId) {
-        // --- MODO DE EDIÇÃO (UPDATE) ---
         const currentTask = tasks.find(t => t.id == editingId);
         taskData.status = currentTask ? currentTask.status : 'to-do';
 
@@ -448,7 +430,6 @@ async function handleTaskSubmit(e) {
             .eq('id', editingId); 
         error = updateError;
     } else {
-        // --- MODO DE CRIAÇÃO (INSERT) ---
         taskData.status = "to-do"; 
         const { error: insertError } = await supabaseClient
             .from('tasks')
@@ -463,7 +444,6 @@ async function handleTaskSubmit(e) {
     }
     
     await loadTasksFromStorage(); 
-    
     renderSummary();
     renderTasks();
     closeTaskModal();
@@ -472,7 +452,6 @@ async function handleTaskSubmit(e) {
     const cepStatus = document.getElementById("cep-status");
     if (cepStatus) cepStatus.textContent = "";
 }
-
 
 async function changeTaskStatus(taskId, newStatus) {
     const { error } = await supabaseClient
@@ -519,37 +498,22 @@ async function deleteTask() {
     }
 }
 
-async function markAsInProgress(taskId) {
-    await changeTaskStatus(taskId, "in-progress");
-}
-
-async function markAsDone(taskId) {
-    await changeTaskStatus(taskId, "done");
-}
-
-async function markAsToDo(taskId) {
-    await changeTaskStatus(taskId, "to-do");
-}
+async function markAsInProgress(taskId) { await changeTaskStatus(taskId, "in-progress"); }
+async function markAsDone(taskId) { await changeTaskStatus(taskId, "done"); }
+async function markAsToDo(taskId) { await changeTaskStatus(taskId, "to-do"); }
 
 // ==========================================================
-// ===== FUNÇÕES DE FILTRO (MANTIDAS) =====
+// ===== FUNÇÕES DE FILTRO =====
 // ==========================================================
-
 function filterTasks(task) {
     const filters = currentFilters;
 
-    if (filters.priority && filters.priority !== 'all' && task.priority !== filters.priority) {
-        return false;
-    }
+    if (filters.priority && filters.priority !== 'all' && task.priority !== filters.priority) return false;
     if (filters.responsible && filters.responsible.trim() !== '') {
-        if (!task.responsible || !task.responsible.toLowerCase().includes(filters.responsible.toLowerCase().trim())) {
-            return false;
-        }
+        if (!task.responsible || !task.responsible.toLowerCase().includes(filters.responsible.toLowerCase().trim())) return false;
     }
     if (filters.dueDate && filters.dueDate.trim() !== '') {
-        if (task.collectionDate > filters.dueDate) {
-            return false;
-        }
+        if (task.collectionDate > filters.dueDate) return false;
     }
 
     if (filters.status && filters.status !== 'all') {
@@ -560,58 +524,35 @@ function filterTasks(task) {
         const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
         if (filters.status === 'to-do') {
-            if ( !(task.status === 'to-do' && task.collectionDate !== todayStr && task.collectionDate !== tomorrowStr) ) {
-                return false;
-            }
+            if ( !(task.status === 'to-do' && task.collectionDate !== todayStr && task.collectionDate !== tomorrowStr) ) return false;
         }
-        if (filters.status === 'today' && !( (task.status === 'to-do' && task.collectionDate === todayStr) || task.status === 'in-progress' )) {
-            return false;
-        }
+        if (filters.status === 'today' && !( (task.status === 'to-do' && task.collectionDate === todayStr) || task.status === 'in-progress' )) return false;
         if (filters.status === 'tomorrow') {
-            if ( !(task.status === 'to-do' && task.collectionDate === tomorrowStr) ) {
-                return false;
-            }
+            if ( !(task.status === 'to-do' && task.collectionDate === tomorrowStr) ) return false;
         }
-        if (filters.status === 'done' && task.status !== 'done') {
-            return false;
-        }
+        if (filters.status === 'done' && task.status !== 'done') return false;
     }
     
     if (filters.dueStart && task.collectionDate < filters.dueStart) return false;
     if (filters.dueEnd && task.collectionDate > filters.dueEnd) return false;
     if (filters.createdStart && task.createdAt.split('T')[0] < filters.createdStart) return false;
     if (filters.createdEnd && task.createdAt.split('T')[0] > filters.createdEnd) return false;
-    
-    if (filters.location && filters.location !== 'all') {
-         // Lógica de filtro de localização (ainda pode precisar de ajuste)
-    }
-    
+    if (filters.wasteType && filters.wasteType !== 'all' && task.wasteType !== filters.wasteType) return false;
     if (filters.region && filters.region.trim() !== '') {
-        if (!task.region || !task.region.toLowerCase().includes(filters.region.toLowerCase().trim())) {
-            return false;
-        }
+        if (!task.region || !task.region.toLowerCase().includes(filters.region.toLowerCase().trim())) return false;
     }
-    
     if (filters.vehicle && filters.vehicle !== 'all' && task.vehicle !== filters.vehicle) return false;
     if (filters.cep && filters.cep.trim() !== '') {
-        if (!task.cep || !task.cep.startsWith(filters.cep.trim())) {
-            return false;
-        }
+        if (!task.cep || !task.cep.startsWith(filters.cep.trim())) return false;
     }
     if (filters.title && filters.title.trim() !== '') {
-        if (!task.name || !task.name.toLowerCase().includes(filters.title.toLowerCase().trim())) {
-            return false;
-        }
+        if (!task.name || !task.name.toLowerCase().includes(filters.title.toLowerCase().trim())) return false;
     }
     if (filters.description && filters.description.trim() !== '') {
-        if (!task.description || !task.description.toLowerCase().includes(filters.description.toLowerCase().trim())) {
-            return false;
-        }
+        if (!task.description || !task.description.toLowerCase().includes(filters.description.toLowerCase().trim())) return false;
     }
     if (filters.id && filters.id.trim() !== '') {
-        if (!task.id.toString().includes(filters.id.trim())) {
-            return false;
-        }
+        if (!task.id.toString().includes(filters.id.trim())) return false;
     }
     return true;
 }
@@ -619,12 +560,10 @@ function filterTasks(task) {
 function applySidebarFilters(e) {
     e.preventDefault();
     const formData = new FormData(sidebarFiltersForm);
-    
     currentFilters.priority = formData.get("priority");
     currentFilters.responsible = formData.get("responsible");
     currentFilters.dueDate = formData.get("dueDate");
     currentFilters.dueEnd = currentFilters.dueDate;
-    
     syncFilterInputs(); 
     renderTasks();
 }
@@ -643,11 +582,9 @@ function applyAdvancedFilters() {
     currentFilters.title = document.getElementById('adv-filter-title').value;
     currentFilters.description = document.getElementById('adv-filter-desc').value;
     currentFilters.id = document.getElementById('adv-filter-id').value;
-    
     currentFilters.priority = document.getElementById('adv-filter-priority').value;
     currentFilters.responsible = document.getElementById('adv-filter-responsible').value;
     currentFilters.dueDate = currentFilters.dueEnd; 
-    
     syncFilterInputs(); 
     renderTasks();
     toggleAdvancedFilterPanel(); 
@@ -655,35 +592,18 @@ function applyAdvancedFilters() {
 
 function clearAllFilters() {
     currentFilters = {
-        priority: 'all',
-        responsible: '',
-        dueDate: '',
-        status: 'all',
-        dueStart: '',
-        dueEnd: '',
-        createdStart: '',
-        createdEnd: '',
-        wasteType: 'all',
-        location: 'all',
-        region: '',
-        vehicle: 'all',
-        cep: '',
-        title: '',
-        description: '',
-        id: ''
+        priority: 'all', responsible: '', dueDate: '', status: 'all', dueStart: '', dueEnd: '',
+        createdStart: '', createdEnd: '', wasteType: 'all', location: 'all', region: '',
+        vehicle: 'all', cep: '', title: '', description: '', id: ''
     };
-    
     syncFilterInputs(); 
     renderTasks();
 }
 
 function syncFilterInputs() {
-    // Sidebar
     document.getElementById("filterPriority").value = currentFilters.priority;
     document.getElementById("filterResponsible").value = currentFilters.responsible;
     document.getElementById("filterDueDate").value = currentFilters.dueDate;
-
-    // Dropdown
     document.getElementById('adv-filter-status').value = currentFilters.status;
     document.getElementById('adv-filter-due-start').value = currentFilters.dueStart;
     document.getElementById('adv-filter-due-end').value = currentFilters.dueEnd;
@@ -708,15 +628,10 @@ function toggleAdvancedFilterPanel(e) {
         advFilterToggleBtn.classList.toggle('active');
     }
 }
-// ===============================================
-// ===== FIM DAS FUNÇÕES DE FILTRO =====
-// ===============================================
-
 
 // ==========================================================
 // ===== FUNÇÕES DE RENDERIZAÇÃO (TAREFAS.HTML) =====
 // ==========================================================
-
 function renderTasks() {
     const toDoList = document.getElementById("to-do-tasks");
     const todayList = document.getElementById("today-tasks"); 
@@ -798,13 +713,10 @@ function renderSummary() {
     const inProgress = tasks.filter(t => t.status === 'in-progress').length;
     const todayButNotStarted = tasks.filter(t => t.status === 'to-do' && t.collectionDate === todayStr).length;
     const countToday = inProgress + todayButNotStarted;
-
     const countTomorrow = tasks.filter(t => t.status === 'to-do' && t.collectionDate === tomorrowStr).length;
     
     const toDo = tasks.filter(t => 
-        t.status === 'to-do' && 
-        t.collectionDate !== todayStr && 
-        t.collectionDate !== tomorrowStr
+        t.status === 'to-do' && t.collectionDate !== todayStr && t.collectionDate !== tomorrowStr
     ).length;
     
     if (totalCountEl) totalCountEl.textContent = total;
@@ -824,6 +736,7 @@ function createTaskCard(task) {
         editTask(task.id);
     }; 
 
+    // LÊ DINAMICAMENTE DO OBJETO SINCRONIZADO COM O BANCO DE DADOS
     const wasteLabel = window.wasteTypeLabels[task.wasteType] || task.wasteType;
     const responsibleInitial = task.responsible ? task.responsible.charAt(0).toUpperCase() : '?';
     const priorityIcon = window.priorityIcons[task.priority] || '';
@@ -883,12 +796,9 @@ function createTaskCard(task) {
     return card;
 }
 
-
 // ==========================================================
 // ===== FUNÇÕES AUXILIARES GLOBAIS =====
 // ==========================================================
-
-// [MUDANÇA] Adicionamos 'window.' para compartilhar
 window.formatDate = function(dateString) {
     if (!dateString) return "N/D";
     const [year, month, day] = dateString.split("-");
@@ -896,30 +806,23 @@ window.formatDate = function(dateString) {
     return `${day}/${month}/${year}`;
 }
 
-// [MUDANÇA] Adicionamos 'window.' para compartilhar
 window.getLocationLabel = function(locationKey) {
     return window.locationLabels[locationKey] || locationKey || 'N/D';
 }
 
-// [MUDANÇA] Adicionamos 'window.' para compartilhar
 window.getRegionLabel = function(locationKey, regionKey) {
     if (locationKey && window.regionsByLocation[locationKey]) {
         const region = window.regionsByLocation[locationKey].find(r => r.value === regionKey);
         if (region) return region.label;
     }
-    // Fallback para os dados do ViaCEP
     return regionKey || 'N/D';
 }
 
-// [MUDANÇA] Adicionamos 'window.' para compartilhar
 window.calculateTimeRemaining = function(dateString, timeString) {
     const collectionDateTime = new Date(`${dateString}T${timeString || '00:00:00'}`);
     const now = new Date();
     const timeDiff = collectionDateTime.getTime() - now.getTime();
-    
-    if (timeDiff <= 0) {
-        return { text: "Prazo vencido", class: "urgent" };
-    }
+    if (timeDiff <= 0) return { text: "Prazo vencido", class: "urgent" };
     
     const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -927,7 +830,6 @@ window.calculateTimeRemaining = function(dateString, timeString) {
     
     let timeText = "";
     let timeClass = "normal";
-    
     if (days > 0) {
         timeText = `${days} dia${days > 1 ? 's' : ''} restante${days > 1 ? 's' : ''}`;
         if (days <= 1) timeClass = "warning";
@@ -938,21 +840,15 @@ window.calculateTimeRemaining = function(dateString, timeString) {
         timeText = `${minutes} min restantes`;
         timeClass = "urgent";
     }
-    
-    return {
-        text: timeText,
-        class: timeClass
-    };
+    return { text: timeText, class: timeClass };
 }
 
-// [MUDANÇA] Adicionamos 'window.' para compartilhar
 window.loadTasksFromStorage = async function() {
     console.log("Buscando tarefas no Supabase...");
-    
     const { data, error } = await supabaseClient
         .from('tasks') 
         .select('*') 
-        .order('"collectionDate"', { ascending: true }); // [CORREÇÃO] Usar aspas duplas
+        .order('"collectionDate"', { ascending: true });
 
     if (error) {
         console.error("Erro ao buscar tarefas:", error.message);
@@ -970,22 +866,16 @@ window.loadTasksFromStorage = async function() {
             } else if (task.status === 'em-andamento') { 
                 task.status = 'in-progress';
             }
-            
-            if (!['done', 'in-progress', 'to-do'].includes(task.status)) {
-                task.status = 'to-do';
-            }
-            
+            if (!['done', 'in-progress', 'to-do'].includes(task.status)) task.status = 'to-do';
             if (!task.priority) task.priority = 'medium';
             if (!task.description) task.description = 'Sem descrição.';
         });
     }
 }
 
-
 // ==========================================================
 // ===== EXPOSIÇÃO DE FUNÇÕES GLOBAIS (Obrigatorio) =====
 // ==========================================================
-
 window.markAsInProgress = markAsInProgress;
 window.markAsDone = markAsDone;
 window.markAsToDo = markAsToDo;

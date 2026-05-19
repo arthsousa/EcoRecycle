@@ -3,62 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mapa de Coletas - EcoRecycle</title>
+    <title>Mapa de Coletas - Terra Reciclagem</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
+        /* ===== CSS GERAL ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            background-color: #f5f5f5; 
+            color: #333;
+            overflow-x: hidden;
+        }
 
-        /* Navbar */
+        /* ===== NAVBAR SUPERIOR PADRONIZADA ===== */
         .top-navbar {
-            position: fixed; top: 0; left: 0; right: 0; height: 60px;
-            background-color: #2c3e50; display: flex; align-items: center;
-            justify-content: space-between; padding: 0 20px; z-index: 1000;
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            height: 60px;
+            background-color: #2c3e50; 
+            display: flex; 
+            align-items: center;
+            justify-content: space-between; 
+            padding: 0 20px; 
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-        .navbar-center { display: flex; gap: 15px; }
-        .menu-item {
-            padding: 8px 12px; color: #ecf0f1; text-decoration: none;
-            font-size: 14px; border-radius: 4px; transition: 0.3s;
-        }
-        .menu-item:hover { background-color: #34495e; }
-        .menu-item.active { background-color: #27ae60; }
 
-        /* Conteúdo */
-        .main-content { margin-top: 60px; padding: 20px; height: calc(100vh - 60px); }
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-container {
+            width: 40px;
+            height: 40px;
+            background-color: #34495e;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #95a5a6;
+        }
+
+        .logo {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .navbar-center { 
+            display: flex; 
+            gap: 10px; 
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #ecf0f1;
+            font-size: 1.2em;
+        }
+
+        .navbar-right a {
+            color: #f5f5f5;
+            text-decoration: none;
+            margin-right: 15px;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .navbar-right a:hover,
+        .navbar-right a:focus,
+        .navbar-right a:active {
+            color: #ccc;
+        }
+
+        .navbar-right a .fas {
+            color: inherit;
+        }
+
+        /* ===== ITENS DO MENU ===== */
+        .menu-item {
+            width: auto;
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            color: #ecf0f1;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            transition: background-color 0.3s ease;
+            text-decoration: none; 
+            border-radius: 5px;
+        }
+
+        .menu-item:hover { 
+            background-color: #34495e; 
+        }
+        
+        .menu-item.active { 
+            background-color: #27ae60; 
+            font-weight: bold;
+        }
+
+        .menu-icon {
+            font-size: 16px;
+        }
+
+        /* ===== CONTEÚDO DA PÁGINA ===== */
+        .main-content { 
+            margin-top: 60px; 
+            padding: 20px; 
+            height: calc(100vh - 60px); 
+        }
+        
         .section-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; background: white; padding: 15px; border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            margin-bottom: 15px; 
+            background: white; 
+            padding: 15px; 
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .section-header h2 {
+            color: #2c3e50;
+            font-size: 24px;
+        }
+
+        #map-status {
+            font-size: 14px;
+            color: #7f8c8d;
         }
 
         #map {
-            height: calc(100% - 80px); width: 100%;
-            border-radius: 12px; border: 2px solid #ddd;
+            height: calc(100% - 75px); 
+            width: 100%;
+            border-radius: 12px; 
+            border: 2px solid #ddd;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        /* Estilo do Balão do Mapa */
+        /* Estilo do Balão do Mapa (Popup Leaflet) */
         .popup-content { font-size: 14px; line-height: 1.4; }
         .btn-gps {
             display: inline-block; margin-top: 8px; padding: 6px 12px;
             background: #27ae60; color: white; text-decoration: none;
             border-radius: 4px; font-weight: bold; text-align: center;
         }
+
+        /* ===== RESPONSIVIDADE PADRÃO ===== */
+        @media (max-width: 768px) {
+            .navbar-center { gap: 5px; }
+            .section-header { flex-direction: column; gap: 15px; align-items: stretch; text-align: center; }
+        }
+
+        @media (max-width: 480px) {
+            .top-navbar { padding: 0 10px; }
+            .main-content { padding: 15px; }
+            .navbar-center { display: none; }
+        }
     </style>
 </head>
 <body>
 
     <nav class="top-navbar">
-        <div class="navbar-left"><strong style="color: white;">EcoRecycle</strong></div>
-        <div class="navbar-center">
-            <a href="tarefas.html" class="menu-item"><i class="fas fa-tasks"></i> Tarefas</a>
-            <a href="mapa.html" class="menu-item active"><i class="fas fa-map-marked-alt"></i> Mapa</a>
+        <div class="navbar-left">
+            <div class="logo-container">
+                <img src="imagens/logo.png" alt="Logo" class="logo">
+            </div>
         </div>
-        <div class="navbar-right" style="color: white;"><i class="fas fa-user-circle"></i></div>
+        <div class="navbar-center">
+            <a href="dashboard.html" class="menu-item"><i class="fas fa-chart-line menu-icon"></i> <span>Dashboard</span></a>
+            <a href="tarefas.html" class="menu-item"><i class="fas fa-tasks menu-icon"></i> <span>Tarefas</span></a>
+            <a href="calendario.html" class="menu-item"><i class="fas fa-calendar-alt menu-icon"></i> <span>Calendário</span></a>
+            <a href="mapa.html" class="menu-item active"><i class="fas fa-map-marked-alt menu-icon"></i> <span>Mapa</span></a>
+        </div>
+        <div class="navbar-right">
+            <a href="configuracoes.html" title="Configurações"><i class="fas fa-cog"></i></a>
+            <a href="conta.html" title="Minha Conta"><i class="fas fa-user-circle"></i></a>
+        </div>
     </nav>
 
     <main class="main-content">
@@ -73,7 +207,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <script src="configuracoes.js"></script> 
+    <script src="tarefas.js"></script> 
     <script src="mapa.js" defer></script>
 
 </body>

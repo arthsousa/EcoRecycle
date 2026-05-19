@@ -22,7 +22,7 @@
             align-items: center;
             justify-content: center;
             position: relative;
-            transition: background 0.5s ease; /* Transição suave para o modo escuro */
+            transition: background 0.5s ease;
         }
 
         .container {
@@ -179,7 +179,7 @@
             transform: translateX(20px);
         }
         
-        /* ===== DARK MODE CSS (NOVO) ===== */
+        /* ===== DARK MODE CSS ===== */
         .dark-mode {
             background: linear-gradient(135deg, #121212, #000);
             color: white !important;
@@ -215,11 +215,11 @@
         }
         
         .dark-mode .config-option-button .fa-chevron-right {
-             color: #8bc34a; /* Verde claro para contraste */
+             color: #8bc34a;
         }
         
         .dark-mode .back-button {
-             background: #8bc34a; /* Verde claro para destaque */
+             background: #8bc34a;
              color: black;
         }
         
@@ -229,7 +229,7 @@
         
         .dark-mode .logout-button-small {
             background: transparent; 
-            color: #ff7961; /* Vermelho claro */
+            color: #ff7961;
             border-color: #ff7961;
         }
 
@@ -289,6 +289,167 @@
             color: white;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
+
+        /* ===== ESTILOS DOS MODAIS INTERNOS ===== */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 440px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            color: #333;
+            text-align: left;
+        }
+        .dark-mode .modal-content {
+            background-color: #222;
+            color: #e0e0e0;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+        .dark-mode .modal-header { border-bottom-color: #444; }
+        .modal-header h3 {
+            font-size: 18px;
+            color: #2d5a3d;
+        }
+        .dark-mode .modal-header h3 { color: #8bc34a; }
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        /* Form do Modal de Cadastro / Edição */
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+            margin-bottom: 15px;
+        }
+        .dark-mode .modal-form { border-bottom-color: #444; }
+
+        .modal-form .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .modal-form label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #555;
+            text-transform: uppercase;
+        }
+        .dark-mode .modal-form label { color: #aaa; }
+        .modal-form input {
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .dark-mode .modal-form input {
+            background-color: #333;
+            border-color: #555;
+            color: white;
+        }
+        .btn-submit-modal {
+            padding: 12px;
+            background-color: #2d5a3d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 5px;
+        }
+        .dark-mode .btn-submit-modal { background-color: #8bc34a; color: black; }
+        
+        .modal-err {
+            color: #c0392b;
+            background-color: #fadbd8;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            display: none;
+        }
+
+        /* Estilos de Listas Internas (Resíduos e Usuários) */
+        .form-add-waste { display: flex; gap: 10px; margin-bottom: 15px; }
+        .form-add-waste input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+        .dark-mode .form-add-waste input { background-color: #333; border-color: #555; color: white; }
+        .btn-add-waste { padding: 10px 15px; background-color: #2d5a3d; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .dark-mode .btn-add-waste { background-color: #8bc34a; color: black; }
+        
+        .inner-list-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #2d5a3d;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .dark-mode .inner-list-title { color: #8bc34a; }
+
+        .list-container-box { 
+            max-height: 150px; 
+            overflow-y: auto; 
+            border: 1px solid #eee; 
+            border-radius: 6px; 
+            padding: 5px; 
+        }
+        .dark-mode .list-container-box { border-color: #444; }
+        
+        .list-item-row { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 8px 12px; 
+            border-bottom: 1px solid #f5f5f5; 
+            font-size: 14px;
+        }
+        .dark-mode .list-item-row { border-bottom-color: #333; }
+        .list-item-row:last-child { border-bottom: none; }
+        
+        .user-meta-role {
+            font-size: 10px;
+            font-weight: bold;
+            padding: 1px 5px;
+            border-radius: 4px;
+            margin-left: 6px;
+            text-transform: uppercase;
+        }
+
+        .btn-delete-row { background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 14px; padding: 4px; }
     </style>
 </head>
 <body>
@@ -308,13 +469,21 @@
 
             <div class="config-options">
                 
-                <a href="conta.html" class="config-option-button">
+                <button class="config-option-button" id="btnEditarConta">
                     <div>
-                        <i class="fas fa-user-circle"></i> 
-                        Minha Conta
+                        <i class="fas fa-user-edit"></i> 
+                        Editar Minha Conta
                     </div>
                     <i class="fas fa-chevron-right"></i>
-                </a>
+                </button>
+
+                <button class="config-option-button" id="btnAbrirRegistro">
+                    <div>
+                        <i class="fas fa-user-plus"></i> 
+                        Cadastrar Novo Usuário
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </button>
 
                 <div class="config-option-button" style="cursor: default;">
                     <div>
@@ -327,7 +496,7 @@
                     </label>
                 </div>
 
-                <button class="config-option-button">
+                <button class="config-option-button" id="btnGerenciarResiduos">
                     <div>
                         <i class="fas fa-recycle"></i> 
                         Cadastrar Tipos de Resíduos
@@ -335,7 +504,7 @@
                     <i class="fas fa-chevron-right"></i>
                 </button>
                 
-                <button class="config-option-button">
+                <button class="config-option-button" id="btnExportarPDF">
                     <div>
                         <i class="fas fa-file-export"></i> 
                         Exportar Relatórios
@@ -353,7 +522,96 @@
         </div>
     </div>
 
+    <div class="modal" id="editAccountModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-edit"></i> Editar Minha Conta</h3>
+                <button class="close-modal" id="closeEditModal">&times;</button>
+            </div>
+            
+            <form id="editAccountForm" class="modal-form" style="border:none; padding:0; margin:0;">
+                <div class="form-group">
+                    <label for="editName">Nome Completo</label>
+                    <input type="text" id="editName" placeholder="Seu nome completo" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPassword">Nova Senha (Opcional)</label>
+                    <input type="password" id="editPassword" placeholder="Deixe em branco para não alterar">
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar Nova Senha</label>
+                    <input type="password" id="confirmPassword" placeholder="Digite a nova senha novamente">
+                </div>
+
+                <div class="modal-err" id="edit-error-message"></div>
+
+                <button type="submit" class="btn-submit-modal" id="saveAccountButton">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> Gerenciar Usuários</h3>
+                <button class="close-modal" id="closeRegisterModal">&times;</button>
+            </div>
+            
+            <form id="registerForm" class="modal-form">
+                <div class="form-group">
+                    <label for="name">Nome Completo</label>
+                    <input type="text" id="name" placeholder="Nome do funcionário" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">E-mail Corporativo</label>
+                    <input type="email" id="email" placeholder="email@terra.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Senha de Acesso</label>
+                    <input type="password" id="password" placeholder="Mínimo 6 dígitos" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="adminCode">Código de Segurança (Opcional)</label>
+                    <input type="password" id="adminCode" placeholder="Insira apenas se for criar outro Admin">
+                </div>
+
+                <div class="modal-err" id="register-error-message"></div>
+
+                <button type="submit" class="btn-submit-modal" id="registerButton">Criar Conta</button>
+            </form>
+
+            <div class="inner-list-title">Funcionários Cadastrados</div>
+            <div class="list-container-box" id="userListContainer">
+                <div style="text-align: center; padding: 10px; color: #777;">Carregando usuários...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="wasteModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-recycle"></i> Tipos de Resíduos</h3>
+                <button class="close-modal" id="closeWasteModal">&times;</button>
+            </div>
+            
+            <form class="form-add-waste" id="formAddWaste">
+                <input type="text" id="newWasteInput" placeholder="Ex: Equipamentos de Som" required>
+                <button type="submit" class="btn-add-waste">Adicionar</button>
+            </form>
+
+            <div class="list-container-box" id="wasteListContainer">
+                <div style="text-align: center; padding: 10px; color: #777;">Carregando materiais...</div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="configuracoes.js"></script> 
 </body>
 </html>

@@ -96,6 +96,7 @@
 
         .form-group {
             text-align: left;
+            position: relative;
         }
 
         .form-label {
@@ -126,6 +127,24 @@
             transform: translateY(-2px);
         }
 
+        /* Link Esqueci Senha */
+        .forgot-password-link {
+            text-align: right;
+            margin-top: -12px;
+        }
+
+        .forgot-password-link a {
+            color: #1e3d2a;
+            font-size: 12px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .forgot-password-link a:hover {
+            text-decoration: underline;
+            color: white;
+        }
+
         .login-button {
             background: #2d5a3d;
             color: white;
@@ -139,33 +158,7 @@
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
-        }
-        
-        .login-button.loading {
-            background: #666;
-            cursor: not-allowed;
-            position: relative;
-        }
-
-        .login-button.loading::after {
-            content: '';
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            margin: auto;
-            border: 2px solid transparent;
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            width: 100%;
         }
 
         .login-button:hover {
@@ -189,15 +182,27 @@
             text-decoration: underline;
         }
         
-        /* Mensagem de Erro */
+        /* Mensagem de Feedback */
         #error-message {
             color: #c0392b;
-            background-color: #fdd;
+            background-color: #fadbd8;
             padding: 10px;
-            border-radius: 5px;
+            border-radius: 6px;
             margin-top: 10px;
-            display: none; /* Oculto por padrão */
+            display: none;
             font-weight: bold;
+            font-size: 13px;
+        }
+
+        #success-message {
+            color: #27ae60;
+            background-color: #d5f4e6;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            display: none;
+            font-weight: bold;
+            font-size: 13px;
         }
     </style>
 </head>
@@ -217,27 +222,56 @@
                 </svg>
             </div>
 
-            <h1 class="login-title">Login</h1>
+            <div id="loginArea">
+                <h1 class="login-title">Login</h1>
 
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <label for="email" class="form-label">EMAIL</label>
-                    <input type="email" id="email" name="email" placeholder="Insira seu email" required>
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <label for="email" class="form-label">EMAIL</label>
+                        <input type="email" id="email" name="email" placeholder="Insira seu email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">SENHA</label>
+                        <input type="password" id="password" name="password" placeholder="Insira sua senha" required>
+                    </div>
+
+                    <div class="forgot-password-link">
+                        <a href="#" id="linkEsqueciSenha">Esqueceu sua senha?</a>
+                    </div>
+
+                    <div id="error-message"></div>
+                    <div id="success-message"></div>
+
+                    <button type="submit" class="login-button">Entrar</button>
+                </form>
+                
+                <div class="back-link">
+                    <a href="index.html">Voltar para a seleção</a>
                 </div>
-
-                <div class="form-group">
-                    <label for="password" class="form-label">SENHA</label>
-                    <input type="password" id="password" name="password" placeholder="Insira sua senha" required>
-                </div>
-
-                <div id="error-message"></div>
-
-                <button type="submit" class="login-button">Entrar</button>
-            </form>
-            
-            <div class="back-link">
-                <a href="index.html">Voltar para a seleção</a>
             </div>
+
+            <div id="recoverArea" style="display: none;">
+                <h1 class="login-title" style="font-size: 26px;">Recuperar Senha</h1>
+
+                <form id="recoverForm" class="login-form">
+                    <p style="color: white; font-size: 13px; margin-bottom: 5px; text-align: left; line-height: 1.4;">
+                        Insira o seu e-mail cadastrado. Enviaremos um link de segurança para você redefinir sua senha de acesso.
+                    </p>
+                    
+                    <div class="form-group">
+                        <label for="recoverEmail" class="form-label">EMAIL CADASTRADO</label>
+                        <input type="email" id="recoverEmail" placeholder="seu-email@terra.com" required>
+                    </div>
+
+                    <button type="submit" class="login-button" id="recoverButton">Enviar E-mail</button>
+                </form>
+                
+                <div class="back-link">
+                    <a href="#" id="linkVoltarLogin">Voltar para o Login</a>
+                </div>
+            </div>
+
         </div>
     </div>
 

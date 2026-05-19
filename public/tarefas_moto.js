@@ -158,20 +158,28 @@ function renderTaskList(tasksToRender) {
 // ==========================================================
 
 function calculateOptimalRoute() {
-    const pendentes = (window.filteredTasksForRoute || window.tasks).filter(t => t.status !== 'done');
+    // 1. Captura a data de hoje no formato YYYY-MM-DD
+    const hojeStr = new Date().toISOString().split('T')[0];
 
-    if (pendentes.length === 0) {
-        alert("Não há tarefas pendentes para traçar rota.");
+    // 2. Filtra para pegar APENAS as tarefas que são para hoje E que não foram concluídas
+    const pendentesDoDia = (window.filteredTasksForRoute || window.tasks).filter(t => {
+        return t.collectionDate === hojeStr && t.status !== 'done';
+    });
+
+    // 3. Valida se sobrou alguma tarefa para hoje
+    if (pendentesDoDia.length === 0) {
+        alert("Não há tarefas pendentes agendadas para hoje (" + window.formatDate(hojeStr) + ") para traçar a rota.");
         return;
     }
 
+    // 4. Monta a URL do Google Maps com os pontos do dia
     const origem = encodeURIComponent(PONTO_PARTIDA_PADRAO);
-    const última = pendentes[pendentes.length - 1];
+    const última = pendentesDoDia[pendentesDoDia.length - 1];
     const destino = encodeURIComponent(`${última.logradouro}, ${última.numero}, Santo André, SP`);
 
     let waypoints = "";
-    if (pendentes.length > 1) {
-        const paradas = pendentes.slice(0, -1).map(t => encodeURIComponent(`${t.logradouro}, ${t.numero}, Santo André, SP`));
+    if (pendentesDoDia.length > 1) {
+        const paradas = pendentesDoDia.slice(0, -1).map(t => encodeURIComponent(`${t.logradouro}, ${t.numero}, Santo André, SP`));
         waypoints = "&waypoints=" + paradas.join('|');
     }
 
